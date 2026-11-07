@@ -408,9 +408,9 @@ chore(scope): 杂项
 
 ## <img src="docs/images/icons/file-text.svg" width="20" style="vertical-align: middle; margin-right: 0.3em;" /> 许可证
 
-解读对象 **OpenClaw** 遵循 **Apache License 2.0**,版权归 [openclaw/openclaw](https://github.com/openclaw/openclaw) 所有;本站是对该第三方项目的解读与整理。
+本项目基于 **Apache License 2.0** 开源 —— 许可证正文见 [`LICENSE`](LICENSE)。
 
-本仓库(文档站本身)的许可由仓库所有者指定,详见仓库根目录的 `LICENSE`。
+解读对象 **OpenClaw** 遵循 **Apache License 2.0**,版权归 [openclaw/openclaw](https://github.com/openclaw/openclaw) 所有;本站是对该第三方项目的解读与整理。
 
 ```
 Copyright 2026 notes-openclaw Contributors
