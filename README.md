@@ -309,7 +309,7 @@ graph TB
 #   Output directory: /
 ```
 
-页面里用的全是**相对路径**(`assets/xxx.js`),部署到子目录也不用改配置。上线前记得把 `sitemap.xml` / `rss.xml` 里的 `<loc>` 换成真实域名。
+页面里用的全是**相对路径**(`assets/xxx.js`),部署到子目录也不用改配置。`sitemap.xml` / `rss.xml` 里也只写相对路径,没有写死域名 —— 部署到自己的域名后,在这两个文件顶部按注释补上域名即可。
 
 ---
 
