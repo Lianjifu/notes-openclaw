@@ -1,0 +1,555 @@
+[
+  {
+    "id": "overview",
+    "module": "01-overview",
+    "title": "OpenClaw 是什么",
+    "summary": "OpenClaw 是一个跨平台、个人优先的 AI 助手框架,通过单一可信网关连接模型、工具、消息通道和伴生应用。",
+    "tags": [
+      "概览",
+      "简介",
+      "AI 助手"
+    ],
+    "category": "入门",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "01-overview.html#sec-1"
+  },
+  {
+    "id": "design-philosophy",
+    "module": "01-overview",
+    "title": "设计哲学与目标",
+    "summary": "OpenClaw 的三条核心架构原则:可信的网关、不可信的执行、确定性的策略。",
+    "tags": [
+      "设计哲学",
+      "三原则",
+      "架构"
+    ],
+    "category": "入门",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "01-overview.html#sec-2"
+  },
+  {
+    "id": "meta",
+    "module": "01-overview",
+    "title": "项目元信息",
+    "summary": "OpenClaw v2026.8.2 的版本、技术栈、能力指标一文总览。",
+    "tags": [
+      "元信息",
+      "技术栈",
+      "指标"
+    ],
+    "category": "入门",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "01-overview.html#sec-9"
+  },
+  {
+    "id": "three-principles",
+    "module": "02-architecture",
+    "title": "三原则:可信网关、不可信执行、确定策略",
+    "summary": "可信的网关、不可信的执行、确定性的策略 — 这三条原则如何在 OpenClaw 落地。",
+    "tags": [
+      "架构原则",
+      "三原则",
+      "可信网关"
+    ],
+    "category": "核心架构",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 7,
+    "path": "02-architecture.html#sec-2"
+  },
+  {
+    "id": "four-layer",
+    "module": "02-architecture",
+    "title": "四层架构总览",
+    "summary": "OpenClaw 由四个核心层组成:消息通道、可信网关、Agent 运行时、模型提供商。",
+    "tags": [
+      "四层架构",
+      "系统总览"
+    ],
+    "category": "核心架构",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "02-architecture.html#sec-4"
+  },
+  {
+    "id": "gateway-internals",
+    "module": "02-architecture",
+    "title": "网关内部结构",
+    "summary": "网关是一个 Node.js 进程,通过单一端口多路复用 WebSocket、HTTP API、插件路由和控制台 UI。",
+    "tags": [
+      "网关",
+      "端口复用",
+      "WebSocket"
+    ],
+    "category": "核心架构",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "02-architecture.html#sec-6"
+  },
+  {
+    "id": "trust-boundaries",
+    "module": "02-architecture",
+    "title": "三层信任边界",
+    "summary": "OpenClaw 将可信边界严格划在网关处,Agent 推理与工具执行运行在不可信侧。",
+    "tags": [
+      "信任边界",
+      "安全",
+      "钩子"
+    ],
+    "category": "核心架构",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "02-architecture.html#sec-8"
+  },
+  {
+    "id": "channel-architecture",
+    "module": "03-channels",
+    "title": "通道插件架构",
+    "summary": "OpenClaw 通过通道插件连接 15+ 消息平台,每个插件负责 OAuth / 凭据管理、消息解析、规范化与送达。",
+    "tags": [
+      "通道",
+      "插件架构",
+      "消息平台"
+    ],
+    "category": "消息通道",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "03-channels.html#sec-6"
+  },
+  {
+    "id": "protocol-frames",
+    "module": "03-channels",
+    "title": "协议帧详解",
+    "summary": "通道插件与 Gateway 之间的 WebSocket JSON 帧完整示例与规范。",
+    "tags": [
+      "协议",
+      "WebSocket",
+      "JSON 帧"
+    ],
+    "category": "消息通道",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "03-channels.html#sec-12"
+  },
+  {
+    "id": "builtin-channels",
+    "module": "03-channels",
+    "title": "内置通道清单",
+    "summary": "OpenClaw 内置 50+ 通道插件,涵盖主流消息平台、邮件、Webhook 等。",
+    "tags": [
+      "通道清单",
+      "插件列表"
+    ],
+    "category": "消息通道",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "03-channels.html#sec-16"
+  },
+  {
+    "id": "concepts",
+    "module": "04-models-runtimes",
+    "title": "模型与运行时概念区分",
+    "summary": "OpenClaw 把 Provider/Model 与 Runtime/Harness 解耦,理解这一点是选择合适配置的前提。",
+    "tags": [
+      "Provider",
+      "Model",
+      "Runtime",
+      "Harness"
+    ],
+    "category": "模型与运行时",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "04-models-runtimes.html#sec-5"
+  },
+  {
+    "id": "runtime-comparison",
+    "module": "04-models-runtimes",
+    "title": "五种运行时对比",
+    "summary": "openclaw / codex / copilot / claude-cli / acp 五种 Runtime 各自定位与适用场景。",
+    "tags": [
+      "运行时",
+      "对比",
+      "Codex",
+      "Copilot"
+    ],
+    "category": "模型与运行时",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "04-models-runtimes.html#sec-10"
+  },
+  {
+    "id": "selection",
+    "module": "04-models-runtimes",
+    "title": "四级选择流程",
+    "summary": "OpenClaw 按四级优先级解析 Agent 运行时:模型级 → Provider 级 → auto → fallback。",
+    "tags": [
+      "选择流程",
+      "运行时配置",
+      "agentRuntime"
+    ],
+    "category": "模型与运行时",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 7,
+    "path": "04-models-runtimes.html#sec-12"
+  },
+  {
+    "id": "providers",
+    "module": "04-models-runtimes",
+    "title": "内置 Provider 清单",
+    "summary": "OpenClaw 内置 30+ 模型 Provider,涵盖主流商业 API、开源模型、聚合服务。",
+    "tags": [
+      "Provider 清单",
+      "LLM",
+      "模型"
+    ],
+    "category": "模型与运行时",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "04-models-runtimes.html#sec-18"
+  },
+  {
+    "id": "lifecycle",
+    "module": "05-sessions",
+    "title": "会话生命周期",
+    "summary": "一个会话从创建到销毁经历哪些阶段?ACTIVE / RUNNING / IDLE / COMPACTED / ARCHIVED。",
+    "tags": [
+      "会话",
+      "生命周期",
+      "状态机"
+    ],
+    "category": "会话与状态",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "05-sessions.html#sec-5"
+  },
+  {
+    "id": "persistence",
+    "module": "05-sessions",
+    "title": "状态持久化",
+    "summary": "OpenClaw 使用 SQLite local-first 持久化,所有状态可查询、可恢复、可归档。",
+    "tags": [
+      "SQLite",
+      "持久化",
+      "存储"
+    ],
+    "category": "会话与状态",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "05-sessions.html#sec-8"
+  },
+  {
+    "id": "prompt-layers",
+    "module": "05-sessions",
+    "title": "提示词分层结构",
+    "summary": "OpenClaw 的 5 层提示词叠加结构:basePrompt + skills snapshot + bootstrap + session context + per-run overrides。",
+    "tags": [
+      "提示词",
+      "Bootstrap",
+      "AGENTS.md"
+    ],
+    "category": "会话与状态",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "05-sessions.html#sec-13"
+  },
+  {
+    "id": "dm-scope",
+    "module": "05-sessions",
+    "title": "DM 隔离策略",
+    "summary": "main / per-peer / per-channel-peer / per-account-channel-peer — 4 种 DM 隔离模式。",
+    "tags": [
+      "DM",
+      "隔离",
+      "多用户"
+    ],
+    "category": "会话与状态",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "05-sessions.html#sec-16"
+  },
+  {
+    "id": "tool-execution",
+    "module": "06-tools-hooks",
+    "title": "工具执行机制",
+    "summary": "工具如何被调用?沙箱、超时、并发 — OpenClaw 的工具执行核心机制。",
+    "tags": [
+      "工具",
+      "沙箱",
+      "执行"
+    ],
+    "category": "工具与钩子",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "06-tools-hooks.html#sec-6"
+  },
+  {
+    "id": "hooks",
+    "module": "06-tools-hooks",
+    "title": "钩子拦截点",
+    "summary": "OpenClaw 8+ 个 Agent 生命周期钩子,before_tool_call / after_tool_call 是核心拦截点。",
+    "tags": [
+      "钩子",
+      "生命周期",
+      "拦截"
+    ],
+    "category": "工具与钩子",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "06-tools-hooks.html#sec-10"
+  },
+  {
+    "id": "key-decisions",
+    "module": "06-tools-hooks",
+    "title": "关键路径决策汇总",
+    "summary": "时序中的每一处分支对应哪个设计决策?8 个核心决策一文汇总。",
+    "tags": [
+      "决策",
+      "设计"
+    ],
+    "category": "工具与钩子",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "06-tools-hooks.html#sec-14"
+  },
+  {
+    "id": "whatsapp-journey",
+    "module": "07-end-to-end",
+    "title": "WhatsApp DM 完整旅程",
+    "summary": "追踪一条消息从发送到回复的 13 个参与者、9 个阶段。",
+    "tags": [
+      "端到端",
+      "WhatsApp",
+      "时序"
+    ],
+    "category": "端到端流程",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "07-end-to-end.html#sec-8"
+  },
+  {
+    "id": "dataflow",
+    "module": "07-end-to-end",
+    "title": "端到端数据流概览",
+    "summary": "一条普通用户消息从发送到收到回复的完整 9 步流程。",
+    "tags": [
+      "数据流",
+      "流程"
+    ],
+    "category": "端到端流程",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "07-end-to-end.html#sec-9"
+  },
+  {
+    "id": "full-sequence",
+    "module": "07-end-to-end",
+    "title": "时序图全貌",
+    "summary": "完整 Mermaid 时序图 — 13 个参与者、9 个阶段,带 autonumber 自动编号。",
+    "tags": [
+      "时序图",
+      "Mermaid"
+    ],
+    "category": "端到端流程",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "07-end-to-end.html#sec-12"
+  },
+  {
+    "id": "latency-timeline",
+    "module": "08-performance",
+    "title": "耗时分布参考",
+    "summary": "一条典型消息在各阶段的典型耗时,模型推理占总耗时 70%+。",
+    "tags": [
+      "耗时",
+      "性能",
+      "基线"
+    ],
+    "category": "性能与延迟",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "08-performance.html#sec-4"
+  },
+  {
+    "id": "latency-breakdown",
+    "module": "08-performance",
+    "title": "延迟拆解可视化",
+    "summary": "三种典型场景:纯文本 / 一次工具 / 三次工具,各阶段耗时对比。",
+    "tags": [
+      "延迟拆解",
+      "性能"
+    ],
+    "category": "性能与延迟",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "08-performance.html#sec-5"
+  },
+  {
+    "id": "optimization",
+    "module": "08-performance",
+    "title": "优化策略",
+    "summary": "针对延迟的优化方法 — 选用更快的模型、prompt caching、并发执行工具等。",
+    "tags": [
+      "优化",
+      "性能"
+    ],
+    "category": "性能与延迟",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "08-performance.html#sec-10"
+  },
+  {
+    "id": "error-scenarios",
+    "module": "09-error-handling",
+    "title": "11 种异常场景",
+    "summary": "常见失败点与 OpenClaw 的应对策略 — Schema 校验、速率限制、auth 过期、超时等。",
+    "tags": [
+      "异常",
+      "错误处理"
+    ],
+    "category": "异常与降级",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 6,
+    "path": "09-error-handling.html#sec-5"
+  },
+  {
+    "id": "retry",
+    "module": "09-error-handling",
+    "title": "重试策略与退避算法",
+    "summary": "各种资源的重试参数与实现细节 — 通道重连、Provider HTTP、OAuth Refresh 等。",
+    "tags": [
+      "重试",
+      "退避",
+      "算法"
+    ],
+    "category": "异常与降级",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "09-error-handling.html#sec-7"
+  },
+  {
+    "id": "monitoring",
+    "module": "09-error-handling",
+    "title": "监控与告警",
+    "summary": "关键监控指标与告警阈值,OpenTelemetry / Prometheus 集成。",
+    "tags": [
+      "监控",
+      "告警",
+      "可观测性"
+    ],
+    "category": "异常与降级",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "09-error-handling.html#sec-12"
+  },
+  {
+    "id": "top-level",
+    "module": "10-source-walkthrough",
+    "title": "顶层目录结构",
+    "summary": "OpenClaw monorepo 的顶层目录组织:src/、packages/、extensions/、apps/、skills/、ui/。",
+    "tags": [
+      "monorepo",
+      "目录结构"
+    ],
+    "category": "源码导览",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "10-source-walkthrough.html#sec-5"
+  },
+  {
+    "id": "src-modules",
+    "module": "10-source-walkthrough",
+    "title": "src/ 核心模块",
+    "summary": "核心代码位于 src/,按职责划分:gateway、agents、channels、plugins、tools 等。",
+    "tags": [
+      "源码",
+      "src/",
+      "模块"
+    ],
+    "category": "源码导览",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "10-source-walkthrough.html#sec-7"
+  },
+  {
+    "id": "packages",
+    "module": "10-source-walkthrough",
+    "title": "packages/ 可复用包",
+    "summary": "20+ 可独立发布的 npm 包,跨应用共享,定义明确的依赖关系。",
+    "tags": [
+      "packages",
+      "npm",
+      "复用"
+    ],
+    "category": "源码导览",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "10-source-walkthrough.html#sec-10"
+  },
+  {
+    "id": "extensions",
+    "module": "10-source-walkthrough",
+    "title": "extensions/ 插件清单",
+    "summary": "50+ 通道、Provider、Harness、工具插件,OpenClaw 的核心扩展点。",
+    "tags": [
+      "extensions",
+      "插件"
+    ],
+    "category": "源码导览",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 5,
+    "path": "10-source-walkthrough.html#sec-12"
+  },
+  {
+    "id": "apps",
+    "module": "10-source-walkthrough",
+    "title": "apps/ 伴生应用",
+    "summary": "macOS、iOS、Android、Linux 伴生应用,通过 WebSocket 与 Gateway 通信。",
+    "tags": [
+      "apps",
+      "macOS",
+      "iOS",
+      "Android"
+    ],
+    "category": "源码导览",
+    "author": "lian",
+    "date": "2026-09-01",
+    "readingTime": 4,
+    "path": "10-source-walkthrough.html#sec-14"
+  }
+]

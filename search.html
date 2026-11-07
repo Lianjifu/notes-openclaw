@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>搜索 · OpenClaw Docs</title>
+<link rel="stylesheet" href="assets/gitbook.css?v=1794028923_a1428">
+<script src="assets/site.js?v=1794028923_a1428" defer></script>
+<script src="assets/platform.js?v=1794028923_a1428" defer></script>
+</head>
+<body>
+
+<div class="reading-progress"></div>
+
+<header class="top-header">
+  <button class="menu-toggle">目录</button>
+  <span class="logo">OpenClaw Docs</span>
+  <span class="crumbs"><a href="index.html" style="color:inherit;text-decoration:none;">首页</a> · <strong>搜索</strong></span>
+  <span class="spacer"></span>
+  <button class="theme-toggle">暗色</button>
+</header>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+
+  <h1 class="doc-title">全文搜索</h1>
+  <p class="doc-subtitle">在所有文章标题、摘要、标签中搜索</p>
+
+  <div class="search-box">
+ 
+    <input type="search" placeholder="输入关键词搜索文章..." autofocus>
+  </div>
+
+  <div class="search-results"></div>
+
+</main>
+
+
+
+<script>
+fetch('assets/articles.json')
+  .then(r => r.text())
+  .then(t => {
+    window.OPENCLAW_ARTICLES = JSON.parse(t);
+    document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true }));
+  })
+  .catch(() => {
+    if (window.OPENCLAW_ARTICLES_FALLBACK) {
+      window.OPENCLAW_ARTICLES = window.OPENCLAW_ARTICLES_FALLBACK;
+      document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true }));
+    }
+  });
+</script>
+</body>
+</html>

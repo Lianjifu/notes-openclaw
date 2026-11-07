@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 09 · 错误处理与降级 · OpenClaw Docs</title>
+<meta name="description" content="OpenClaw 5 大类错误分类、4 类恢复策略(重试/Fallback/熔断/降级)、可观测性 4 件套与 SLO — 合并为一页完整指南。">
+<link rel="alternate" type="application/rss+xml" title="OpenClaw Docs RSS" href="../rss.xml">
+<link rel="stylesheet" href="assets/gitbook.css?v=1794028923_a1428">
+<script>
+  (function(){try{var t=localStorage.getItem('openclaw-docs-theme-v2')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script src="assets/mermaid-fix.js?v=1794028923_a1428" defer></script>
+<script src="assets/mermaid-render.js?v=1794028923_a1428" defer></script>
+<script src="assets/site.js?v=1794028923_a1428" defer></script>
+<script src="assets/platform.js?v=1794028923_a1428" defer></script>
+<style>
+  /* 本页专属 · 通用组件已迁至 assets/gitbook.css */
+
+  .module-hero {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(245, 158, 11, 0.08));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 2rem 2rem 1.5rem; margin-bottom: 2rem;
+  }
+  .module-hero h1 {
+    background: linear-gradient(135deg, #dc2626, #f59e0b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    font-size: 2.2rem; font-weight: 800;
+    margin-bottom: 0.4rem; border: none; padding: 0;
+  }
+  .module-hero .mh-tag {
+    display: inline-block; background: rgba(220, 38, 38, 0.12);
+    color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.25);
+    font-size: 0.78rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px; margin-bottom: 1rem;
+  }
+
+  .diagram { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+  .diagram-caption { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.8rem; text-align: center; }
+
+  /* 错误类别卡 */
+  .err-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.3rem 1.5rem;
+    margin: 1.2rem 0; position: relative; overflow: hidden;
+  }
+  .err-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; }
+  .err-card.e1::before { background: #2563eb; }
+  .err-card.e2::before { background: #7c3aed; }
+  .err-card.e3::before { background: #c026d3; }
+  .err-card.e4::before { background: #d97706; }
+  .err-card.e5::before { background: #dc2626; }
+  .err-card h2 { border: none; padding: 0; margin: 0 0 0.4rem; background: none; color: var(--text-primary); font-size: 1.25rem; }
+  .err-card .ec-tag {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px;
+    margin-bottom: 0.5rem; letter-spacing: 0.04em;
+  }
+  .err-card.e1 .ec-tag { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
+  .err-card.e2 .ec-tag { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
+  .err-card.e3 .ec-tag { background: rgba(192, 38, 211, 0.12); color: #c026d3; }
+  .err-card.e4 .ec-tag { background: rgba(217, 119, 6, 0.12); color: #d97706; }
+  .err-card.e5 .ec-tag { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+  .err-card code { background: rgba(37, 99, 235, 0.08); padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+
+  /* 策略卡 */
+  .strategy-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.3rem 1.6rem;
+    margin: 1.3rem 0; position: relative; overflow: hidden;
+  }
+  .strategy-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; }
+  .strategy-card.s1::before { background: #2563eb; }
+  .strategy-card.s2::before { background: #7c3aed; }
+  .strategy-card.s3::before { background: #d97706; }
+  .strategy-card.s4::before { background: #059669; }
+  .strategy-card h2 { border: none; padding: 0; margin: 0 0 0.4rem; background: none; color: var(--text-primary); font-size: 1.25rem; }
+  .strategy-card .sc-tag {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px;
+    margin-bottom: 0.5rem; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .strategy-card.s1 .sc-tag { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
+  .strategy-card.s2 .sc-tag { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
+  .strategy-card.s3 .sc-tag { background: rgba(217, 119, 6, 0.12); color: #d97706; }
+  .strategy-card.s4 .sc-tag { background: rgba(5, 150, 105, 0.12); color: #059669; }
+  .strategy-card code { background: rgba(37, 99, 235, 0.08); padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+
+  /* 4 件套卡 */
+  .pillar-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin: 1.5rem 0;
+  }
+  .pillar {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.2rem 1.4rem;
+    position: relative; overflow: hidden;
+  }
+  .pillar::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .pillar.p1::before { background: #2563eb; }
+  .pillar.p2::before { background: #7c3aed; }
+  .pillar.p3::before { background: #d97706; }
+  .pillar.p4::before { background: #dc2626; }
+  .pillar .pl-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; }
+  .pillar .pl-desc { color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; }
+  .pillar code { background: rgba(37, 99, 235, 0.08); padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+
+  /* 表格 */
+  .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .info-table th { background: var(--bg-panel-2); padding: 0.7rem 1rem; text-align: left; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+  .info-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: top; }
+  .info-table tr:last-child td { border-bottom: none; }
+  .info-table td:first-child { font-weight: 700; color: var(--accent); font-family: monospace; font-size: 0.85rem; }
+
+  pre.code-block {
+    background: #0d1117; color: #e6edf3; border-radius: 8px;
+    padding: 1rem 1.2rem; font-family: monospace;
+    font-size: 0.8rem; line-height: 1.5;
+    overflow-x: auto; margin: 1rem 0;
+  }
+  pre.code-block .comment { color: #8b949e; font-style: italic; }
+  pre.code-block .num { color: #f0883e; }
+  pre.code-block .key { color: #79c0ff; }
+  pre.code-block .str { color: #a5d6ff; }
+  pre.code-block .ok { color: #56d364; }
+  pre.code-block .warn { color: #d29922; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  }
+  .badge-ok { background: rgba(5, 150, 105, 0.12); color: var(--success); }
+  .badge-warn { background: rgba(217, 119, 6, 0.12); color: var(--warning); }
+  .badge-err { background: rgba(220, 38, 38, 0.12); color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="reading-progress"></div>
+
+<header class="top-header">
+  <button class="menu-toggle">目录</button>
+  <span class="logo">notes-openclaw</span>
+  <span class="spacer"></span>
+  <a href="../search.html" style="text-decoration:none;margin-right:0.4rem;color:var(--text-secondary);font-size:0.85rem;">搜索</a>
+  <button class="theme-toggle">亮色</button>
+  <span class="meta" style="margin-left:0.6rem;">v2026.9.2</span>
+</header>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+
+<div class="breadcrumb" data-slot="breadcrumb"></div>
+
+<div class="article">
+
+<!-- ============ 文章头部(参考 01 风格) ============ -->
+<header class="post-header">
+  <div class="article-breadcrumb">
+    <a href="index.html">notes-openclaw</a><span class="sep">/</span><a href="index.html">10 大模块</a><span class="sep">/</span><span>009 错误处理与降级</span>
+  </div>
+  <span class="article-kicker">模块 09 · 异常降级</span>
+  <h1 class="post-title">错误处理与降级策略</h1>
+
+  <div class="post-meta">
+    <span class="meta-item"> <span>更新于 <strong>2026-10-17</strong></span></span>
+    <span class="meta-divider"></span>
+    <span class="meta-item"> <span>阅读约 <strong>15 分钟</strong></span></span>
+    <span class="meta-divider"></span>
+    <span class="meta-item"> <span>面向:<strong>运维 + 可靠性工程师</strong></span></span>
+    <span class="meta-divider"></span>
+    <span class="meta-item"> <span>适配 <strong>v2026.9.2</strong></span></span>
+  </div>
+</header>
+
+<div class="article-reading-layout">
+<div class="post-body">
+
+<p class="post-lede">
+  <strong>11 种异常场景 + 4 级重试策略</strong> — 失败不是异常,是常态。OpenClaw 的容错设计让系统在部分组件挂掉时仍能降级运行。
+</p>
+
+<!-- ============ § 1 · 一句话定位 ============ -->
+<section class="doc-section">
+  <h2 id="sec-1"><span class="sec-num">§ 1</span>一句话定位</h2>
+
+  <div class="intro-callout">
+    <strong>"可恢复优于防御性" — 把错误视为正常流程的一部分,设计 fallback 链路、监控告警、自动重试,而不是把所有错误都当作异常抛出。</strong>本模块拆解:5 类错误、4 类恢复策略、可观测性 4 件套 + 关键 SLO。
+  </div>
+
+  <div class="fact-grid">
+    <div class="fact"><div class="fact-num">5</div><div class="fact-label">大类错误<br>通道·网关·Agent·工具·配置</div></div>
+    <div class="fact"><div class="fact-num">4</div><div class="fact-label">类恢复策略<br>重试·Fallback·熔断·降级</div></div>
+    <div class="fact"><div class="fact-num">3</div><div class="fact-label">次重试(默认)<br>1s→2s→4s 指数退避</div></div>
+    <div class="fact"><div class="fact-num">4</div><div class="fact-label">件套可观测性<br>Metrics·Logs·Traces·Alerts</div></div>
+    <div class="fact"><div class="fact-num">5</div><div class="fact-label">个关键 SLO<br>99.5%·TTFT·延迟·成功率</div></div>
+    <div class="fact"><div class="fact-num">7</div><div class="fact-label">个 Prometheus 指标<br>内置</div></div>
+  </div>
+</section>
+
+<!-- ============ § 2 · 回答/不回答 ============ -->
+
+
+<!-- ============ § 3 · 关键事实 ============ -->
+
+
+<!-- ============ § 2 · 三原则 ============ -->
+<section class="doc-section">
+  <h2 id="sec-2"><span class="sec-num">§ 2</span>错误处理的三个原则</h2>
+
+  <div class="principles-preview">
+    <div class="pp-card pp-gateway">
+ 
+      <div class="pp-name">可恢复优于防御性</div>
+      <div class="pp-desc">把错误处理设计为正常流程的一部分,而不是 try/catch 附加层。失败路径要像正常路径一样被主动规划。</div>
+    </div>
+    <div class="pp-card pp-exec">
+ 
+      <div class="pp-name">可观测性 = 4 件套</div>
+      <div class="pp-desc">Metrics + Logs + Traces + Alerts 缺一不可 — 用户报障前你必须知道。OpenClaw 内置全部,你接 Prometheus + Grafana 就行。</div>
+    </div>
+    <div class="pp-card pp-policy">
+ 
+      <div class="pp-name">4 类失败 → 4 类策略</div>
+      <div class="pp-desc">抖动(重试)、主备(Fallback)、雪崩(熔断)、末日(降级) — 错误先分类,再决定走哪条恢复路径。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ § 3 · 模块位置 ============ -->
+<section class="doc-section">
+  <h2 id="sec-3"><span class="sec-num">§ 3</span>模块位置</h2>
+
+  <div class="diagram" data-mermaid='flowchart LR
+  A["<b>02 架构</b><br/>单一可信网关"] --&gt; B["<b>09 错误处理</b><br/>分类 + 重试 + 监控"]
+  B --&gt; C["<b>06 工具钩子</b><br/>工具级错误处理"]
+  B --&gt; D["<b>04 模型</b><br/>fallback chain"]
+  B --&gt; E["<b>08 性能</b><br/>超时与降级"]
+
+  style A fill:#eef2ff,stroke:#2563eb,color:#1a1f2b
+  style B fill:#dc2626,stroke:#dc2626,color:#fff,stroke-width:2px
+  style C fill:#eef2ff,stroke:#2563eb,color:#1a1f2b
+  style D fill:#eef2ff,stroke:#2563eb,color:#1a1f2b
+  style E fill:#eef2ff,stroke:#2563eb,color:#1a1f2b'></div>
+  <p class="diagram-caption">图 9.1 · 模块 09 是"失败视角" — 把模块 02 的"单一可信网关"加上错误处理维度。</p>
+</section>
+
+<!-- ============ § 6 · 5 大错误类别 ============ -->
+<section class="doc-section">
+  <h2 id="sec-4"><span class="sec-num">§ 4</span>5 大错误类别</h2>
+
+  <p>把错误按发生位置分类 — 不同位置有不同的恢复策略。先识别你的错误属于哪类。</p>
+
+  <div class="diagram" data-mermaid='flowchart LR
+  E["<b>错误分类</b>"]
+  E --&gt; C1["<b>1 通道层</b><br/>ChannelError<br/> 网络/平台"]
+  E --&gt; C2["<b>2 网关层</b><br/>GatewayError<br/> 路由/Schema"]
+  E --&gt; C3["<b>3 Agent 层</b><br/>AgentError<br/> 推理/超时"]
+  E --&gt; C4["<b>4 工具层</b><br/>ToolError<br/> 沙箱/超时"]
+  E --&gt; C5["<b>5 配置层</b><br/>ConfigError<br/>校验/缺失"]
+
+  style E fill:#fee2e2,stroke:#dc2626,color:#1a1f2b
+  style C1 fill:#dbeafe,stroke:#2563eb,color:#1a1f2b
+  style C2 fill:#ede9fe,stroke:#7c3aed,color:#1a1f2b
+  style C3 fill:#fce7f3,stroke:#c026d3,color:#1a1f2b
+  style C4 fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style C5 fill:#fee2e2,stroke:#dc2626,color:#1a1f2b'></div>
+  <p class="diagram-caption">图 9.2 · 5 类错误按发生位置 — 从外到内:通道(外) → 配置(内)。</p>
+</section>
+
+<!-- ============ § 5 · 5 大类详解 ============ -->
+<section class="doc-section">
+  <h2 id="sec-5"><span class="sec-num">§ 5</span>5 大类详解</h2>
+
+  <div class="err-card e1">
+    <span class="ec-tag">类别 1 · ChannelError</span>
+    <h3 id="sec-5.1"><span class="sec-num">§ 5.1</span> 通道层错误</h3>
+    <p><strong>位置</strong>:通道接入与出站(<a href="03-channels.html">模块 03</a>)</p>
+    <p><strong>示例</strong>:</p>
+    <ul>
+      <li><code>WEBHOOK_429</code> — Meta/Telegram/Slack 限流</li>
+      <li><code>WEBHOOK_TIMEOUT</code> — Webhook 投递超时</li>
+      <li><code>AUTH_REVOKED</code> — Bot token 失效</li>
+      <li><code>RATE_LIMIT_EXCEEDED</code> — 用户消息频率超限</li>
+      <li><code>CHANNEL_DOWN</code> — 通道平台宕机</li>
+    </ul>
+    <p><strong>可恢复性</strong>:<span class="badge badge-ok">高</span> 大多数自动重试</p>
+    <p><strong>默认处理</strong>:指数退避 + 平台重试 + 失败 N 次后丢弃并告警</p>
+  </div>
+
+  <div class="err-card e2">
+    <span class="ec-tag">类别 2 · GatewayError</span>
+    <h3 id="sec-5.2"><span class="sec-num">§ 5.2</span> 网关层错误</h3>
+    <p><strong>位置</strong>:网关路由、Schema 校验、会话解析</p>
+    <p><strong>示例</strong>:</p>
+    <ul>
+      <li><code>SCHEMA_VALIDATION_FAILED</code> — Envelope 字段缺失/类型错</li>
+      <li><code>SESSION_NOT_FOUND</code> — 会话 ID 不存在(罕见)</li>
+      <li><code>QUEUE_FULL</code> — 队列满(过载)</li>
+      <li><code>PERMISSION_DENIED</code> — 通道权限配置错误</li>
+    </ul>
+    <p><strong>可恢复性</strong>:<span class="badge badge-warn">中</span> 部分自动恢复</p>
+    <p><strong>默认处理</strong>:Schema 错直接拒绝(不可恢复);队列满等几秒重试;权限错告警。</p>
+  </div>
+
+  <div class="err-card e3">
+    <span class="ec-tag">类别 3 · AgentError</span>
+    <h3 id="sec-5.3"><span class="sec-num">§ 5.3</span> Agent 层错误</h3>
+    <p><strong>位置</strong>:模型推理、Prompt 组装、Agent 循环</p>
+    <p><strong>示例</strong>:</p>
+    <ul>
+      <li><code>LLM_5XX</code> — Anthropic/OpenAI 服务异常</li>
+      <li><code>LLM_TIMEOUT</code> — 模型响应超时(> 30s)</li>
+      <li><code>LLM_CONTEXT_OVERFLOW</code> — Prompt 超上下文窗口</li>
+      <li><code>LLM_AUTH_FAILED</code> — API Key 无效</li>
+      <li><code>MAX_TOOL_ROUNDS_EXCEEDED</code> — 工具循环超 20 轮</li>
+      <li><code>STREAM_INTERRUPTED</code> — 流式连接中断</li>
+    </ul>
+    <p><strong>可恢复性</strong>:<span class="badge badge-ok">高</span> fallback chain 重试</p>
+    <p><strong>默认处理</strong>:Sonnet → Haiku fallback;5xx/timeout 重试;context overflow 截断历史;超 20 轮强制结束。</p>
+  </div>
+
+  <div class="err-card e4">
+    <span class="ec-tag">类别 4 · ToolError</span>
+    <h3 id="sec-5.4"><span class="sec-num">§ 5.4</span> 工具层错误</h3>
+    <p><strong>位置</strong>:工具执行、沙箱、钩子</p>
+    <p><strong>示例</strong>:</p>
+    <ul>
+      <li><code>TOOL_TIMEOUT</code> — 工具执行超时(默认 30s)</li>
+      <li><code>SANDBOX_INIT_FAILED</code> — container 沙箱启动失败</li>
+      <li><code>TOOL_NOT_FOUND</code> — 工具未注册</li>
+      <li><code>TOOL_ARG_INVALID</code> — 参数校验失败</li>
+      <li><code>HOOK_REJECTED</code> — 钩子拒绝(审计不通过)</li>
+      <li><code>POLICY_DENIED</code> — 策略引擎拒绝</li>
+    </ul>
+    <p><strong>可恢复性</strong>:<span class="badge badge-ok">高</span> 错误返回给 LLM</p>
+    <p><strong>默认处理</strong>:超时重试 3 次;沙箱失败 1 次重试;钩子拒绝告知 LLM,LLM 换工具;参数错直接返回 LLM 修正。</p>
+  </div>
+
+  <div class="err-card e5">
+    <span class="ec-tag">类别 5 · ConfigError</span>
+    <h3 id="sec-5.5"><span class="sec-num">§ 5.5</span> 配置层错误</h3>
+    <p><strong>位置</strong>:配置加载、Schema 校验、模型/工具注册</p>
+    <p><strong>示例</strong>:</p>
+    <ul>
+      <li><code>CONFIG_INVALID</code> — YAML/JSON 格式错</li>
+      <li><code>CONFIG_REQUIRED_MISSING</code> — 必填字段缺失</li>
+      <li><code>MODEL_NOT_FOUND</code> — 模型名错</li>
+      <li><code>TOOL_NOT_REGISTERED</code> — 工具未在 config 中声明</li>
+      <li><code>DISK_FULL</code> — SQLite 磁盘满</li>
+      <li><code>PERMISSION_DENIED_FILE</code> — 文件权限错</li>
+    </ul>
+    <p><strong>可恢复性</strong>:<span class="badge badge-err">低</span> 需要人工修复</p>
+    <p><strong>默认处理</strong>:<strong>启动失败</strong>,Gateway 拒绝启动。运行期发生的(磁盘满)立即告警 + 拒绝新请求。</p>
+  </div>
+</section>
+
+<!-- ============ § 6 · 可恢复性矩阵 + 可恢复 vs 不可恢复 ============ -->
+<section class="doc-section">
+  <h2 id="sec-6"><span class="sec-num">§ 6</span>可恢复性矩阵 + 错误处理配置</h2>
+
+  <h3 class="view-h3" id="sec-6.1"><span class="sec-num">§ 6.1</span>可恢复性矩阵<span class="vh-tag">matrix</span></h3>
+  <table class="info-table">
+    <thead><tr><th>类别</th><th>示例错误</th><th>频率</th><th>可恢复</th><th>默认策略</th></tr></thead>
+    <tbody>
+      <tr><td>1 通道</td><td>429, timeout</td><td>中</td><td><span class="badge badge-ok">高</span></td><td>指数退避 + 平台重试</td></tr>
+      <tr><td>2 网关</td><td>Schema 错</td><td>低</td><td><span class="badge badge-warn">中</span></td><td>拒绝 + 队列等</td></tr>
+      <tr><td>3 Agent</td><td>5xx, 超时</td><td>中</td><td><span class="badge badge-ok">高</span></td><td>fallback chain</td></tr>
+      <tr><td>4 工具</td><td>超时, 沙箱失败</td><td>中</td><td><span class="badge badge-ok">高</span></td><td>重试 + 告知 LLM</td></tr>
+      <tr><td>5 配置</td><td>YAML 错, 磁盘满</td><td>低</td><td><span class="badge badge-err">低</span></td><td>启动失败 + 告警</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="view-h3" id="sec-6.2"><span class="sec-num">§ 6.2</span>可恢复 vs 不可恢复<span class="vh-tag">recoverable</span></h3>
+  <p><strong>可恢复错误</strong>:临时性、相同输入重试可能成功、对最终结果影响小。</p>
+  <ul>
+    <li>网络超时、5xx、限流</li>
+    <li>沙箱启动失败(资源临时不足)</li>
+    <li>LLM stream 中断(可重连)</li>
+    <li>磁盘写失败(可重试到 WAL)</li>
+  </ul>
+  <p><strong>不可恢复错误</strong>:相同输入必然失败、需要人工介入。</p>
+  <ul>
+    <li>Schema 校验失败(消息格式错)</li>
+    <li>API Key 无效</li>
+    <li>YAML 格式错</li>
+    <li>磁盘满(除非扩容)</li>
+    <li>钩子拒绝(审计不通过)</li>
+  </ul>
+  <div class="callout">
+    <strong>设计原则</strong>:把可恢复错误处理为"正常流程" — 用户看不到重试,直接得到结果。不可恢复错误要 <strong>立即告警</strong>,而不是悄悄重试无限次。
+  </div>
+
+  <h3 class="view-h3" id="sec-6.3"><span class="sec-num">§ 6.3</span>错误处理配置<span class="vh-tag">config</span></h3>
+  <pre class="code-block"><span class="comment"># config/openclaw.yaml — 错误处理全局配置</span>
+<span class="key">errors</span>:
+  <span class="key">retry</span>:
+    <span class="key">maxAttempts</span>: <span class="num">3</span>          <span class="comment"># 默认重试次数</span>
+    <span class="key">initialDelay</span>: <span class="str">"1s"</span>       <span class="comment"># 初始延迟</span>
+    <span class="key">maxDelay</span>: <span class="str">"30s"</span>          <span class="comment"># 最大延迟</span>
+    <span class="key">backoffMultiplier</span>: <span class="num">2</span>     <span class="comment"># 指数退避倍数</span>
+  <span class="key">circuitBreaker</span>:
+    <span class="key">errorThreshold</span>: <span class="num">0.5</span>     <span class="comment"># 50% 错误率熔断</span>
+    <span class="key">window</span>: <span class="str">"60s"</span>           <span class="comment"># 滑动窗口</span>
+    <span class="key">cooldown</span>: <span class="str">"5m"</span>          <span class="comment"># 熔断持续</span>
+  <span class="key">fallbackChain</span>:
+    - <span class="str">claude-sonnet-4</span>          <span class="comment"># 首选</span>
+    - <span class="str">claude-haiku-4-5</span>        <span class="comment"># fallback</span>
+    - <span class="str">"static:I'm having trouble..."</span>  <span class="comment"># 静态 fallback</span></pre>
+</section>
+
+<!-- ============ § 7 · 4 类恢复策略 ============ -->
+<section class="doc-section">
+  <h2 id="sec-7"><span class="sec-num">§ 7</span>4 类恢复策略</h2>
+
+  <p>失败不可怕,可怕的是失败的方式不可控 — 4 个策略让失败变得可控、可预测、可恢复。</p>
+
+  <div class="diagram" data-mermaid='flowchart LR
+  E["<b>错误发生</b>"]
+  E --&gt; Q{"类型?"}
+
+  Q --&gt;|临时抖动| R["<b>策略 1</b><br/>指数退避重试"]
+  Q --&gt;|主备切换| F["<b>策略 2</b><br/>Fallback Chain"]
+  Q --&gt;|持续失败| CB["<b>策略 3</b><br/>Circuit Breaker"]
+  Q --&gt;|不可恢复| D["<b>策略 4</b><br/>优雅降级"]
+
+  R --&gt; S["<b>用户无感</b><br/>成功"]
+  F --&gt; S
+  CB --&gt; W["<b>5min 冷却后重试</b>"]
+  D --&gt; G["<b>静态兜底回复</b>"]
+
+  style E fill:#fee2e2,stroke:#dc2626,color:#1a1f2b
+  style Q fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style R fill:#dbeafe,stroke:#2563eb,color:#1a1f2b
+  style F fill:#ede9fe,stroke:#7c3aed,color:#1a1f2b
+  style CB fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style D fill:#d1fae5,stroke:#059669,color:#1a1f2b
+  style S fill:#d1fae5,stroke:#059669,color:#1a1f2b
+  style W fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style G fill:#fef3c7,stroke:#d97706,color:#1a1f2b'></div>
+  <p class="diagram-caption">图 9.3 · 4 类策略决策树 — 不同错误类型走不同恢复路径。</p>
+</section>
+
+<!-- ============ § 8 · 4 策略详解 ============ -->
+<section class="doc-section">
+  <h2 id="sec-8"><span class="sec-num">§ 8</span>4 策略详解</h2>
+
+  <div class="strategy-card s1">
+    <span class="sc-tag">策略 1 · 临时抖动</span>
+    <h3 id="sec-8.1"><span class="sec-num">§ 8.1</span> 指数退避重试(Exponential Backoff)</h3>
+    <p><strong>适用</strong>:网络抖动、5xx、超时 — 临时性问题,重试大概率成功。</p>
+    <p><strong>原理</strong>:第 N 次重试等待 <code>initialDelay × multiplier^N</code>,加随机 jitter 防雪崩。</p>
+
+    <table class="info-table">
+      <thead><tr><th>次数</th><th>延迟</th><th>累计</th></tr></thead>
+      <tbody>
+        <tr><td>第 1 次</td><td>1s</td><td>1s</td></tr>
+        <tr><td>第 2 次</td><td>2s</td><td>3s</td></tr>
+        <tr><td>第 3 次</td><td>4s</td><td>7s</td></tr>
+        <tr><td>第 4 次</td><td>8s</td><td>15s</td></tr>
+        <tr><td>第 5 次</td><td>16s</td><td>31s</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>配置</strong>:</p>
+<pre class="code-block"><span class="key">errors</span>:
+  <span class="key">retry</span>:
+    <span class="key">maxAttempts</span>: <span class="num">3</span>          <span class="comment"># 默认重试 3 次</span>
+    <span class="key">initialDelay</span>: <span class="str">"1s"</span>
+    <span class="key">maxDelay</span>: <span class="str">"30s"</span>
+    <span class="key">backoffMultiplier</span>: <span class="num">2</span>
+    <span class="key">jitter</span>: <span class="str">"full"</span>             <span class="comment"># 0-100% 随机抖动</span></pre>
+
+    <p><strong>注意</strong>:不是所有错误都该重试。4xx(客户端错)直接拒绝,不重试。</p>
+  </div>
+
+  <div class="strategy-card s2">
+    <span class="sc-tag">策略 2 · 主备切换</span>
+    <h3 id="sec-8.2"><span class="sec-num">§ 8.2</span> Fallback Chain(主备链)</h3>
+    <p><strong>适用</strong>:主服务失败但备服务可用 — 比如 Sonnet 限流时切到 Haiku。</p>
+
+    <p><strong>原理</strong>:按顺序尝试多个 provider,直到成功或全部失败。</p>
+
+    <pre class="code-block"><span class="key">providers</span>:
+  - <span class="key">name</span>: <span class="str">claude-sonnet-4</span>
+    <span class="key">primary</span>: <span class="str">true</span>
+  - <span class="key">name</span>: <span class="str">claude-haiku-4-5</span>
+    <span class="key">fallback</span>: <span class="str">true</span>
+  - <span class="key">name</span>: <span class="str">ollama:llama-3.3</span>
+    <span class="key">fallback</span>: <span class="str">true</span>
+    <span class="key">triggerOn</span>: [<span class="str">"LLM_5XX"</span>, <span class="str">"LLM_TIMEOUT"</span>]</pre>
+
+    <p><strong>触发切换的错误类型</strong>:</p>
+    <ul>
+      <li><code>LLM_5XX</code> — 主服务 5xx</li>
+      <li><code>LLM_TIMEOUT</code> — 主服务超时</li>
+      <li><code>LLM_RATE_LIMITED</code> — 主服务限流</li>
+      <li><code>LLM_OVERLOADED</code> — 主服务过载</li>
+    </ul>
+  </div>
+
+  <div class="strategy-card s3">
+    <span class="sc-tag">策略 3 · 防雪崩</span>
+    <h3 id="sec-8.3"><span class="sec-num">§ 8.3</span> Circuit Breaker(熔断器)</h3>
+    <p><strong>适用</strong>:下游服务持续失败时,防止请求堆积把上游拖垮。</p>
+
+    <div class="diagram" data-mermaid='stateDiagram-v2
+  direction LR
+  [*] --&gt; Closed
+  Closed --&gt; Open: 错误率 &gt; 50%
+  Open --&gt; HalfOpen: 5min 冷却
+  HalfOpen --&gt; Closed: 测试请求成功
+  HalfOpen --&gt; Open: 测试请求失败
+
+  note right of Closed: 正常请求
+  note right of Open: 直接失败,5min 后试
+  note right of HalfOpen: 放 1 个测试请求'></div>
+    <p class="diagram-caption">图 9.4 · 熔断器三状态机 — Closed → Open → HalfOpen → Closed。</p>
+
+    <p><strong>三个状态</strong>:</p>
+    <ul>
+      <li><strong>Closed</strong>:正常,所有请求通过</li>
+      <li><strong>Open</strong>:熔断,直接返回错误(5 分钟冷却)</li>
+      <li><strong>Half-Open</strong>:放 1 个测试请求,成功 → Closed,失败 → Open</li>
+    </ul>
+
+    <p><strong>配置</strong>:</p>
+<pre class="code-block"><span class="key">circuitBreaker</span>:
+  <span class="key">errorThreshold</span>: <span class="num">0.5</span>      <span class="comment"># 50% 错误率触发</span>
+  <span class="key">minRequests</span>: <span class="num">10</span>         <span class="comment"># 至少 10 个请求</span>
+  <span class="key">window</span>: <span class="str">"60s"</span>            <span class="comment"># 滑动窗口</span>
+  <span class="key">cooldown</span>: <span class="str">"5m"</span>            <span class="comment"># Open 持续</span>
+  <span class="key">halfOpenMax</span>: <span class="num">1</span>          <span class="comment"># 测试请求数</span></pre>
+
+    <div class="callout">
+      <strong>防雪崩</strong>:OpenClaw 可能在 1 分钟内涌入 1000 个消息,如果 LLM 限流 5xx,没有熔断会全部堆积。Circuit breaker 让失败请求 <strong>立即返回</strong>,不堆积在队列。
+    </div>
+  </div>
+
+  <div class="strategy-card s4">
+    <span class="sc-tag">策略 4 · 不可恢复</span>
+    <h3 id="sec-8.4"><span class="sec-num">§ 8.4</span> 优雅降级(Graceful Degradation)</h3>
+    <p><strong>适用</strong>:所有重试/fallback 都失败的"末日场景" — 必须给用户一个体面的回复。</p>
+
+    <p><strong>降级层级</strong>(从好到差):</p>
+
+    <table class="info-table">
+      <thead><tr><th>层级</th><th>方案</th><th>用户感受</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>完整回复(Sonnet)</td><td></td></tr>
+        <tr><td>2</td><td>简化回复(Haiku)</td><td></td></tr>
+        <tr><td>3</td><td>缓存回复(历史相似问题)</td><td></td></tr>
+        <tr><td>4</td><td>FAQ 静态回复</td><td></td></tr>
+        <tr><td>5</td><td>告知稍后重试</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>配置</strong>:</p>
+<pre class="code-block"><span class="key">degradation</span>:
+  <span class="key">tiers</span>:
+    - <span class="key">model</span>: <span class="str">claude-haiku-4-5</span>
+      <span class="key">trigger</span>: <span class="str">"primary_failed"</span>
+    - <span class="key">source</span>: <span class="str">cache</span>
+      <span class="key">matchStrategy</span>: <span class="str">semantic</span>      <span class="comment"># 语义相似</span>
+      <span class="key">minSimilarity</span>: <span class="num">0.85</span>
+    - <span class="key">source</span>: <span class="str">faq</span>
+      <span class="key">file</span>: <span class="str">faq.md</span>
+    - <span class="static">"我暂时无法处理请求,请稍后再试 "</span></pre>
+  </div>
+</section>
+
+<!-- ============ § 9 · 决策流程 + 案例 ============ -->
+<section class="doc-section">
+  <h2 id="sec-9"><span class="sec-num">§ 9</span>决策流程 + 案例</h2>
+
+  <h3 class="view-h3" id="sec-9.1"><span class="sec-num">§ 9.1</span>决策流程<span class="vh-tag">decision</span></h3>
+  <div class="diagram" data-mermaid='flowchart TB
+  Start["<b>错误发生</b>"] --&gt; Q1{"可恢复?"}
+  Q1 --&gt;|否| D4["<b>降级</b><br/>静态兜底"]
+  Q1 --&gt;|是| Q2{"临时抖动?"}
+  Q2 --&gt;|是| R["<b>策略 1</b><br/>指数退避重试"]
+  Q2 --&gt;|否| Q3{"有 fallback?"}
+  Q3 --&gt;|是| F["<b>策略 2</b><br/>Fallback chain"]
+  Q3 --&gt;|否| Q4{"错误率 &gt; 50%?"}
+  Q4 --&gt;|是| CB["<b>策略 3</b><br/>熔断 5min"]
+  Q4 --&gt;|否| R
+
+  style Start fill:#fee2e2,stroke:#dc2626,color:#1a1f2b
+  style Q1 fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style Q2 fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style Q3 fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style Q4 fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style R fill:#dbeafe,stroke:#2563eb,color:#1a1f2b
+  style F fill:#ede9fe,stroke:#7c3aed,color:#1a1f2b
+  style CB fill:#fef3c7,stroke:#d97706,color:#1a1f2b
+  style D4 fill:#d1fae5,stroke:#059669,color:#1a1f2b'></div>
+  <p class="diagram-caption">图 9.5 · 4 策略决策流程 — 错误先判断可恢复性,再决定走哪条路径。</p>
+
+  <h3 class="view-h3" id="sec-9.2"><span class="sec-num">§ 9.2</span>案例<span class="vh-tag">case</span></h3>
+
+  <h4 id="sec-11-3-1"><span class="sec-num">§ 9.2.1</span> 案例 1:LLM 限流</h4>
+  <p>用户消息突然激增,Sonnet 4 触发 429。</p>
+  <ol>
+    <li>第 1 次:Sonnet 429 → 等待 1s 重试</li>
+    <li>第 2 次:Sonnet 429 → 等待 2s 重试</li>
+    <li>第 3 次:Sonnet 429 → <strong>切换 Haiku</strong>(fallback)</li>
+    <li>Haiku 成功 → 用户无感</li>
+  </ol>
+
+  <h4 id="sec-11-4-1"><span class="sec-num">§ 9.2.2</span> 案例 2:LLM 持续失败</h4>
+  <p>所有 provider 都返回 5xx。</p>
+  <ol>
+    <li>请求 1-10:部分失败,错误率 < 50% → 继续重试</li>
+    <li>请求 11+:错误率 80% → <strong>熔断器触发</strong>(Open 状态)</li>
+    <li>后续 5 分钟:直接返回降级回复,不调用 LLM</li>
+    <li>5 分钟后:测试 1 个请求 → 成功 → 恢复 Closed</li>
+  </ol>
+
+  <h4 id="sec-11-5-1"><span class="sec-num">§ 9.2.3</span> 案例 3:磁盘满</h4>
+  <p>SQLite 写入失败(disk full)。</p>
+  <ol>
+    <li>持久化失败 → 重试 3 次</li>
+    <li>仍失败 → <strong>告警</strong>(磁盘满)</li>
+    <li>主流程继续 — 内存中暂存,等磁盘恢复后持久化</li>
+    <li>用户感知不到(响应正常返回)</li>
+  </ol>
+</section>
+
+<!-- ============ § 10 · 可观测性 4 件套 ============ -->
+<section class="doc-section">
+  <h2 id="sec-10"><span class="sec-num">§ 10</span>可观测性 4 件套</h2>
+
+  <p>出了问题怎么知道?用户报障前必须知道 — OpenClaw 内置的可观测性 4 件套 + 关键 SLO。</p>
+
+  <div class="pillar-grid">
+    <div class="pillar p1">
+ 
+      <div class="pl-title">指标 Metrics</div>
+      <div class="pl-desc">数值型时间序列 — 计数、延迟、直方图。Prometheus 格式输出。</div>
+    </div>
+    <div class="pillar p2">
+ 
+      <div class="pl-title">日志 Logs</div>
+      <div class="pl-desc">结构化 JSON 日志 — 每条事件都带 traceId, 可关联到追踪。</div>
+    </div>
+    <div class="pillar p3">
+ 
+      <div class="pl-title">追踪 Traces</div>
+      <div class="pl-desc">跨组件追踪 — OpenTelemetry 标准,可视化请求链路。</div>
+    </div>
+    <div class="pillar p4">
+ 
+      <div class="pl-title">告警 Alerts</div>
+      <div class="pl-desc">基于指标触发 — PagerDuty / Slack / 邮件,分级响应。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ § 11 · 指标 + 日志 ============ -->
+<section class="doc-section">
+  <h2 id="sec-11"><span class="sec-num">§ 11</span>指标 + 日志</h2>
+
+  <h3 class="view-h3" id="sec-11.1"><span class="sec-num">§ 11.1</span>指标(Metrics)<span class="vh-tag">metrics</span></h3>
+  <p>OpenClaw 默认暴露 Prometheus 指标,端口 <code>9090/metrics</code>:</p>
+
+  <table class="info-table">
+    <thead><tr><th>指标</th><th>类型</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><code>openclaw_messages_total</code></td><td>Counter</td><td>处理消息总数(channel 标签)</td></tr>
+      <tr><td><code>openclaw_response_time_seconds</code></td><td>Histogram</td><td>响应时间分布(分阶段)</td></tr>
+      <tr><td><code>openclaw_errors_total</code></td><td>Counter</td><td>错误总数(error_type 标签)</td></tr>
+      <tr><td><code>openclaw_tool_calls_total</code></td><td>Counter</td><td>工具调用总数(tool_name 标签)</td></tr>
+      <tr><td><code>openclaw_tokens_total</code></td><td>Counter</td><td>LLM token 消耗(input/output 标签)</td></tr>
+      <tr><td><code>openclaw_queue_size</code></td><td>Gauge</td><td>当前队列长度</td></tr>
+      <tr><td><code>openclaw_circuit_state</code></td><td>Gauge</td><td>熔断器状态(0=Closed,1=Open,2=HalfOpen)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Grafana 仪表盘模板</strong>(开箱即用):</p>
+
+  <pre class="code-block"><span class="comment"># grafana/dashboards/openclaw.json</span>
+<span class="comment"># 5 个核心面板:</span>
+<span class="comment">#   1. 请求量 + 错误率(双 Y 轴)</span>
+<span class="comment">#   2. P50/P95/P99 延迟</span>
+<span class="comment">#   3. Token 消耗趋势</span>
+<span class="comment">#   4. 各通道消息量(stacked area)</span>
+<span class="comment">#   5. 熔断器状态时间线</span></pre>
+
+  <h3 class="view-h3" id="sec-11.2"><span class="sec-num">§ 11.2</span>日志(Logs)<span class="vh-tag">logs</span></h3>
+  <p>OpenClaw 输出 <strong>结构化 JSON 日志</strong>(默认 stdout,生产建议收 Loki / CloudWatch):</p>
+
+  <pre class="code-block"><span class="comment">// 单条日志示例</span>
+{
+  <span class="key">"timestamp"</span>: <span class="str">"2026-09-05T10:23:45.123Z"</span>,
+  <span class="key">"level"</span>: <span class="str">"info"</span>,
+  <span class="key">"traceId"</span>: <span class="str">"5f3a..."</span>,
+  <span class="key">"sessionId"</span>: <span class="str">"whatsapp:user1:bot123"</span>,
+  <span class="key">"channel"</span>: <span class="str">"whatsapp"</span>,
+  <span class="key">"event"</span>: <span class="str">"message_received"</span>,
+  <span class="key">"toolCalls"</span>: <span class="num">1</span>,
+  <span class="key">"durationMs"</span>: <span class="num">2340</span>,
+  <span class="key">"tokens"</span>: {<span class="key">"input"</span>: <span class="num">1250</span>, <span class="key">"output"</span>: <span class="num">340</span>}
+}</pre>
+
+  <p><strong>日志级别</strong>:</p>
+  <ul>
+    <li><code>debug</code> — 调试信息(默认关闭)</li>
+    <li><code>info</code> — 关键事件(message_received / tool_called / response_sent)</li>
+    <li><code>warn</code> — 降级、fallback 触发</li>
+    <li><code>error</code> — 失败、超出重试</li>
+    <li><code>fatal</code> — 进程级错误(立即告警)</li>
+  </ul>
+</section>
+
+<!-- ============ § 12 · 追踪 + 告警 ============ -->
+<section class="doc-section">
+  <h2 id="sec-12"><span class="sec-num">§ 12</span>追踪 + 告警</h2>
+
+  <h3 class="view-h3" id="sec-12.1"><span class="sec-num">§ 12.1</span>追踪(Traces)<span class="vh-tag">traces</span></h3>
+  <p>OpenClaw 默认开启 OpenTelemetry,导出到 Jaeger / Tempo / Honeycomb:</p>
+
+  <div class="diagram" data-mermaid='flowchart LR
+  T["<b>请求 Trace</b><br/>5f3a..."] --&gt; S1["<b>Span 1</b><br/>gateway.receive"]
+  S1 --&gt; S2["<b>Span 2</b><br/>agent.run"]
+  S2 --&gt; S3["<b>Span 3</b><br/>llm.invoke"]
+  S3 --&gt; S4["<b>Span 4</b><br/>tool.execute"]
+  S4 --&gt; S5["<b>Span 5</b><br/>channel.send"]
+
+  style T fill:#dbeafe,stroke:#2563eb,color:#1a1f2b
+  style S1 fill:#ede9fe,stroke:#7c3aed,color:#1a1f2b
+  style S2 fill:#fce7f3,stroke:#c026d3,color:#1a1f2b
+  style S3 fill:#cffafe,stroke:#0891b2,color:#1a1f2b
+  style S4 fill:#d1fae5,stroke:#059669,color:#1a1f2b
+  style S5 fill:#fee2e2,stroke:#dc2626,color:#1a1f2b'></div>
+  <p class="diagram-caption">图 9.6 · 一次请求的 trace 树 — 每阶段是一个 span,可独立查看耗时。</p>
+
+  <p><strong>Span 属性</strong>(标准 OpenTelemetry):</p>
+  <ul>
+    <li><code>openclaw.channel</code> — 通道类型</li>
+    <li><code>openclaw.session.id</code> — 会话 ID</li>
+    <li><code>openclaw.tool.name</code> — 工具名</li>
+    <li><code>openclaw.llm.model</code> — 模型名</li>
+    <li><code>openclaw.tokens.input</code> — 输入 token</li>
+  </ul>
+
+  <h3 class="view-h3" id="sec-12.2"><span class="sec-num">§ 12.2</span>告警(Alerts)<span class="vh-tag" id="alerts">alerts</span></h3>
+  <p>推荐配置 — 基于 PromQL 的告警规则:</p>
+
+  <pre class="code-block"><span class="key">groups</span>:
+  - <span class="key">name</span>: openclaw_critical
+    <span class="key">rules</span>:
+      <span class="comment"># 告警 1:错误率 &gt; 5%</span>
+      - <span class="key">alert</span>: OpenClawHighErrorRate
+        <span class="key">expr</span>: |
+          rate(openclaw_errors_total[5m]) /
+          rate(openclaw_messages_total[5m]) &gt; <span class="num">0.05</span>
+        <span class="key">for</span>: <span class="str">5m</span>
+        <span class="key">labels</span>: { <span class="key">severity</span>: <span class="warn">warning</span> }
+        <span class="key">annotations</span>:
+          <span class="key">summary</span>: <span class="str">"错误率 5 分钟内 &gt; 5%"</span>
+
+      <span class="comment"># 告警 2:P99 延迟 &gt; 30s</span>
+      - <span class="key">alert</span>: OpenClawSlowResponse
+        <span class="key">expr</span>: |
+          histogram_quantile(<span class="num">0.99</span>,
+            rate(openclaw_response_time_seconds_bucket[5m])
+          ) &gt; <span class="num">30</span>
+        <span class="key">for</span>: <span class="str">10m</span>
+        <span class="key">labels</span>: { <span class="key">severity</span>: <span class="warn">warning</span> }
+
+      <span class="comment"># 告警 3:熔断器持续 Open</span>
+      - <span class="key">alert</span>: OpenClawCircuitOpen
+        <span class="key">expr</span>: openclaw_circuit_state == <span class="num">1</span>
+        <span class="key">for</span>: <span class="str">2m</span>
+        <span class="key">labels</span>: { <span class="key">severity</span>: <span class="warn">critical</span> }
+
+      <span class="comment"># 告警 4:Token 消耗异常</span>
+      - <span class="key">alert</span>: OpenClawTokenSpike
+        <span class="key">expr</span>: |
+          rate(openclaw_tokens_total[1h]) &gt;
+          rate(openclaw_tokens_total[24h] offset 1d) * <span class="num">3</span>
+        <span class="key">for</span>: <span class="str">15m</span>
+        <span class="key">labels</span>: { <span class="key">severity</span>: <span class="warn">warning</span> }</pre>
+</section>
+
+<!-- ============ § 13 · 关键 SLO + 模板 + 清单 ============ -->
+<section class="doc-section">
+  <h2 id="sec-13"><span class="sec-num">§ 13</span>关键 SLO + 模板 + 清单</h2>
+
+  <h3 class="view-h3" id="sec-13.1"><span class="sec-num">§ 13.1</span>关键 SLO<span class="vh-tag">slo</span></h3>
+  <p>SLO(Service Level Objective)是你对用户的承诺:</p>
+
+  <table class="info-table">
+    <thead><tr><th>SLO</th><th>目标</th><th>测量方式</th></tr></thead>
+    <tbody>
+      <tr><td>可用性</td><td>99.5%</td><td>成功响应 / 总请求(5min 滑动)</td></tr>
+      <tr><td>TTFT P95</td><td>&lt; 3s</td><td>首 token 时间 P95</td></tr>
+      <tr><td>总延迟 P95</td><td>&lt; 10s</td><td>完整响应 P95</td></tr>
+      <tr><td>工具成功率</td><td>&gt; 95%</td><td>tool_calls.success / tool_calls.total</td></tr>
+      <tr><td>Fallback 触发率</td><td>&lt; 5%</td><td>fallback_calls / total_calls</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>错误预算</strong>:99.5% 可用性 = 每月允许 ~3.6 小时停机。如果用完,新功能冻结 — 这是 SRE 用来平衡"速度 vs 稳定"的工具。
+  </div>
+
+  <h3 class="view-h3" id="sec-13.2"><span class="sec-num">§ 13.2</span>模板与工具<span class="vh-tag">templates</span></h3>
+  <ul>
+    <li><strong>Grafana 仪表盘</strong>:<code>openclaw/grafana/openclaw-overview.json</code>(开箱即用)</li>
+    <li><strong>Prometheus 告警规则</strong>:<code>openclaw/prometheus/alerts.yml</code>(上文示例)</li>
+    <li><strong>OpenTelemetry Collector 配置</strong>:<code>openclaw/otel-collector-config.yaml</code></li>
+    <li><strong>健康检查端点</strong>:<code>GET /healthz</code>(200 OK 表示健康)</li>
+    <li><strong>就绪检查端点</strong>:<code>GET /readyz</code>(检查依赖)</li>
+  </ul>
+
+  <h3 class="view-h3" id="sec-13.3"><span class="sec-num">§ 13.3</span>上线检查清单<span class="vh-tag">checklist</span></h3>
+  <ul>
+    <li>Prometheus 已 scrape <code>:9090/metrics</code></li>
+    <li>Grafana 仪表盘已导入</li>
+    <li>日志已接 Loki / CloudWatch</li>
+    <li>Trace 已接 Jaeger / Tempo</li>
+    <li>告警已接 PagerDuty / Slack</li>
+    <li>至少 4 个告警规则(error rate / latency / circuit / token)</li>
+    <li><code>/healthz</code> 已接入 LB 健康检查</li>
+    <li>错误预算看板已建立</li>
+  </ul>
+</section>
+
+<!-- ============ § 14 · 阅读路径 + FAQ + 总结 + 相关阅读 ============ -->
+<section class="doc-section">
+  <h2 id="sec-14"><span class="sec-num">§ 14</span>阅读路径 + FAQ + 总结</h2>
+
+  <h3 class="view-h3" id="sec-14.1"><span class="sec-num">§ 14.1</span>阅读路径<span class="vh-tag">paths</span></h3>
+  <p>本页约 14 分钟读完。建议顺序:错误分类 → 恢复策略 → 可观测性。</p>
+
+  <div class="path-grid">
+    <div class="path-card pc-curious">
+      <span class="pc-tag">应用开发者</span>
+      <div class="pc-title">开发者</div>
+      <div class="pc-time"> 14 分钟 · 全章</div>
+      <div class="pc-steps">
+        <ol>
+          <li>§ 1-3 定位 + 三原则</li>
+          <li>§ 4-6 5 类错误 + 矩阵</li>
+          <li>§ 7-9 4 类策略 + 决策流</li>
+          <li>§ 10-13 可观测性 + SLO</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="path-card pc-quick">
+      <span class="pc-tag">SRE / 运维</span>
+      <div class="pc-title">SRE</div>
+      <div class="pc-time"> 8 分钟 · 选段</div>
+      <div class="pc-steps">
+        <ol>
+          <li>§ 6 错误处理配置</li>
+          <li>§ 7-9 4 策略 + 案例</li>
+          <li>§ 10-13 监控 + 告警 + SLO</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="path-card pc-deep">
+      <span class="pc-tag">设计容错</span>
+      <div class="pc-title">设计派</div>
+      <div class="pc-time"> 12 分钟</div>
+      <div class="pc-steps">
+        <ol>
+          <li>§ 4-6 5 类错误 + 矩阵 + 配置</li>
+          <li>§ 7-9 4 策略 + 决策 + 案例</li>
+          <li>结合 <a href="06-tools-hooks.html">模块 06 工具钩子</a> 实现</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="view-h3" id="sec-14.2"><span class="sec-num">§ 14.2</span>常见问题<span class="vh-tag">faq</span></h3>
+
+  <ul class="faq-list">
+    <li class="faq-item">
+      <div class="faq-q"> 哪些错误会自动重试?</div>
+      <div class="faq-a">网络超时、5xx 错误、临时资源不足 — 走指数退避。其他错误(如 4xx)直接返回 LLM。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 重试多少次合适?</div>
+      <div class="faq-a">工具调用默认 3 次(指数退避 1s→2s→4s),LLM 调用默认 fallback chain 切换 1 次。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 怎么监控?</div>
+      <div class="faq-a">OpenClaw 内置 metrics + structured logs,接入 Prometheus / Grafana / OpenTelemetry。详见 § 10-13。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 如何防止雪崩?</div>
+      <div class="faq-a">Circuit breaker — 当错误率 > 阈值时,自动熔断,降级到 fallback。详见 § 8 策略 3。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 熔断器阈值怎么设?</div>
+      <div class="faq-a">推荐 50% 错误率,至少 10 个请求为窗口基础,5 分钟冷却。生产环境先观察一周再调优。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 不可恢复错误应该重试吗?</div>
+      <div class="faq-a">不应该。Schema 错、API Key 无效等,重试无限次也不会成功 — 应该立即告警 + 拒绝请求。</div>
+    </li>
+
+    <li class="faq-item">
+      <div class="faq-q"> 4 件套缺一不可吗?</div>
+      <div class="faq-a">是的。Metrics(数值趋势) + Logs(具体事件) + Traces(调用链) + Alerts(主动通知) — 任一缺失都难以快速定位问题。</div>
+    </li>
+  </ul>
+
+  <h3 class="view-h3" id="sec-14.3"><span class="sec-num">§ 14.3</span>一句话总结<span class="vh-tag">summary</span></h3>
+  <div class="callout">
+    <strong>5 类错误 × 4 类策略 × 4 件套可观测性 = 完整的"失败视角"。</strong>
+    <br><br>
+    <strong>用户报障前必须知道</strong> — 4 件套缺一不可。OpenClaw 内置全部,你只需要接 Prometheus + Grafana + Jaeger。
+  </div>
+
+  <h3 class="view-h3" id="sec-14.4"><span class="sec-num">§ 14.4</span>相关阅读<span class="vh-tag">related</span></h3>
+  <div class="related-grid">
+    <a class="related-card" href="07-end-to-end.html">
+      <span class="rc-eyebrow">07 · 端到端</span>
+      <span class="rc-title">端到端流程</span>
+      <span class="rc-desc">9 阶段时序图 — 看到每一步可能失败的位置,对应 § 4-5 的错误分类。</span>
+    </a>
+    <a class="related-card" href="06-tools-hooks.html">
+      <span class="rc-eyebrow">06 · 工具</span>
+      <span class="rc-title">工具与钩子</span>
+      <span class="rc-desc">before/after_tool_call 钩子 — 实现 § 7 策略 1(重试)和 4(降级)的钩子级实现。</span>
+    </a>
+    <a class="related-card" href="04-models-runtimes.html">
+      <span class="rc-eyebrow">04 · 模型</span>
+      <span class="rc-title">模型与运行时</span>
+      <span class="rc-desc">4 级 fallback chain + 4 类 Runtime — § 7 策略 2 的模型层基础。</span>
+    </a>
+    <a class="related-card" href="08-performance.html">
+      <span class="rc-eyebrow">08 · 性能</span>
+      <span class="rc-title">性能与延迟</span>
+      <span class="rc-desc">SLO 与延迟基线 — 配合 § 13 一起定义可观测的 SLO 目标。</span>
+    </a>
+    <a class="related-card" href="https://docs.openclaw.ai/operations" target="_blank" rel="noopener">
+      <span class="rc-eyebrow">官方文档</span>
+      <span class="rc-title">Operations Guide</span>
+      <span class="rc-desc">运维完整指南 — 部署、监控、告警、灾备的最佳实践。</span>
+    </a>
+    <a class="related-card" href="https://github.com/openclaw/openclaw/tree/main/src/observability" target="_blank" rel="noopener">
+      <span class="rc-eyebrow">源码</span>
+      <span class="rc-title">src/observability/</span>
+      <span class="rc-desc">可观测性实现 — metrics、tracing、logging 的真实代码。</span>
+    </a>
+  </div>
+</section>
+
+<!-- ============ 上一篇 / 下一篇导航(参考 01 风格) ============ -->
+<nav class="article-pager" aria-label="模块阅读导航">
+  <a class="prev" href="08-performance.html">
+    <small>← 08 性能与延迟</small>
+    <span>08 性能与延迟</span>
+  </a>
+  <a class="next" href="10-source-walkthrough.html">
+    <small>10 源码导览 →</small>
+    <span>10 源码导览</span>
+  </a>
+  <a class="article-series-return" href="index.html">返回 10 大模块目录 ↗</a>
+</nav>
+
+</div>
+<aside class="article-toc-aside">
+<details class="reading-toc">
+<summary>本文目录</summary>
+<nav aria-label="本文目录">
+  <a class="reading-toc-link level-2" href="#sec-1">一句话定位</a>
+  <a class="reading-toc-link level-2" href="#sec-2">错误处理的三个原则</a>
+  <a class="reading-toc-link level-2" href="#sec-3">模块位置</a>
+  <a class="reading-toc-link level-2" href="#sec-4">5 大错误类别</a>
+  <a class="reading-toc-link level-2" href="#sec-5">5 大类详解</a>
+  <a class="reading-toc-link level-3" href="#sec-5.1">通道层错误</a>
+  <a class="reading-toc-link level-3" href="#sec-5.2">网关层错误</a>
+  <a class="reading-toc-link level-3" href="#sec-5.3">Agent 层错误</a>
+  <a class="reading-toc-link level-3" href="#sec-5.4">工具层错误</a>
+  <a class="reading-toc-link level-3" href="#sec-5.5">配置层错误</a>
+  <a class="reading-toc-link level-2" href="#sec-6">可恢复性矩阵 + 错误处理配置</a>
+  <a class="reading-toc-link level-3" href="#sec-6.1">可恢复性矩阵 matrix</a>
+  <a class="reading-toc-link level-3" href="#sec-6.2">可恢复 vs 不可恢复 recoverable</a>
+  <a class="reading-toc-link level-3" href="#sec-6.3">错误处理配置 config</a>
+  <a class="reading-toc-link level-2" href="#sec-7">4 类恢复策略</a>
+  <a class="reading-toc-link level-2" href="#sec-8">4 策略详解</a>
+  <a class="reading-toc-link level-3" href="#sec-8.1">指数退避重试(Exponential Backoff)</a>
+  <a class="reading-toc-link level-3" href="#sec-8.2">Fallback Chain(主备链)</a>
+  <a class="reading-toc-link level-3" href="#sec-8.3">Circuit Breaker(熔断器)</a>
+  <a class="reading-toc-link level-3" href="#sec-8.4">优雅降级(Graceful Degradation)</a>
+  <a class="reading-toc-link level-2" href="#sec-9">决策流程 + 案例</a>
+  <a class="reading-toc-link level-3" href="#sec-9.1">决策流程 decision</a>
+  <a class="reading-toc-link level-3" href="#sec-9.2">案例 case</a>
+  <a class="reading-toc-link level-2" href="#sec-10">可观测性 4 件套</a>
+  <a class="reading-toc-link level-2" href="#sec-11">指标 + 日志</a>
+  <a class="reading-toc-link level-3" href="#sec-11.1">指标(Metrics) metrics</a>
+  <a class="reading-toc-link level-3" href="#sec-11.2">日志(Logs) logs</a>
+  <a class="reading-toc-link level-2" href="#sec-12">追踪 + 告警</a>
+  <a class="reading-toc-link level-3" href="#sec-12.1">追踪(Traces) traces</a>
+  <a class="reading-toc-link level-3" href="#sec-12.2">告警(Alerts) alerts</a>
+  <a class="reading-toc-link level-2" href="#sec-13">关键 SLO + 模板 + 清单</a>
+  <a class="reading-toc-link level-3" href="#sec-13.1">关键 SLO slo</a>
+  <a class="reading-toc-link level-3" href="#sec-13.2">模板与工具 templates</a>
+  <a class="reading-toc-link level-3" href="#sec-13.3">上线检查清单 checklist</a>
+  <a class="reading-toc-link level-2" href="#sec-14">阅读路径 + FAQ + 总结</a>
+  <a class="reading-toc-link level-3" href="#sec-14.1">阅读路径 paths</a>
+  <a class="reading-toc-link level-3" href="#sec-14.2">常见问题 faq</a>
+  <a class="reading-toc-link level-3" href="#sec-14.3">一句话总结 summary</a>
+  <a class="reading-toc-link level-3" href="#sec-14.4">相关阅读 related</a>
+</nav>
+</details>
+</aside>
+</div>
+</div>
+</main>
+
+<button class="scroll-top" aria-label="返回顶部">↑</button>
+
+<script>
+fetch('assets/sidebar.html?v=1794028923_a1428').then(r => r.text()).then(html => {
+  document.querySelector('.sidebar').innerHTML = html;
+});
+</script>
+<script>
+/* 本页的 Mermaid 配置。渲染调度(懒加载 / 按需渲染)交给 assets/mermaid-render.js */
+window.OPENCLAW_MERMAID_INIT = function (mermaid) {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  mermaid.initialize({
+        startOnLoad: false,
+        theme: isLight ? 'default' : 'dark',
+        themeVariables: isLight ? {
+          primaryColor: '#eef2ff', primaryTextColor: '#1a1f2b', primaryBorderColor: '#2563eb',
+          lineColor: '#2563eb', secondaryColor: '#f3f5f8', tertiaryColor: '#fafbfc',
+          mainBkg: '#ffffff', nodeBorder: '#d0d7de', clusterBkg: '#f3f5f8',
+          clusterBorder: '#d0d7de', edgeLabelBackground: '#ffffff',
+          actorBkg: '#f3f5f8', actorBorder: '#2563eb', actorTextColor: '#1a1f2b',
+          signalColor: '#2563eb', signalTextColor: '#1a1f2b',
+        } : {
+          primaryColor: '#1f6feb', primaryTextColor: '#e6edf3', primaryBorderColor: '#30363d',
+          lineColor: '#58a6ff', secondaryColor: '#238636', tertiaryColor: '#161b22',
+          mainBkg: '#161b22', nodeBorder: '#30363d', clusterBkg: '#161b22',
+          clusterBorder: '#30363d', edgeLabelBackground: '#161b22',
+          actorBkg: '#161b22', actorBorder: '#1f6feb', actorTextColor: '#e6edf3',
+          signalColor: '#58a6ff', signalTextColor: '#e6edf3',
+        },
+        flowchart: {
+          curve: 'linear',
+          nodeSpacing: 25,
+          rankSpacing: 35,
+          padding: 6,
+          useMaxWidth: true,
+          htmlLabels: true,
+          maxWidth: 700,
+          wrap: true
+      
+        },
+        sequence: { actorMargin: 12, width: 86, boxMargin: 4, noteMargin: 6,
+          messageMargin: 14, showSequenceNumbers: true,
+          maxWidth: 700, wrap: true },
+        stateDiagram: { labelPosition: 'outside', fontSize: 11, useMaxWidth: true,
+          maxWidth: 700,
+          wrap: true
+         }
+      });
+};
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.querySelector('.scroll-top');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) btn.classList.add('is-visible');
+    else btn.classList.remove('is-visible');
+  });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+});
+</script>
+</body>
+</html>

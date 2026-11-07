@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw 源码解读 · 个人技术博客</title>
+<meta name="description" content="OpenClaw v2026.9.2 深度架构与时序分析 · 个人笔记博客平台 · 35 篇文章 / 10 大模块 / ~5 万字">
+<meta name="keywords" content="OpenClaw, AI 助手, 源码解读, 架构分析, 时序图, Mermaid, 可信网关">
+<meta name="author" content="lian">
+<link rel="alternate" type="application/rss+xml" title="OpenClaw Docs RSS" href="rss.xml">
+<link rel="stylesheet" href="assets/gitbook.css?v=1794028923_a1428">
+<script>
+  // 立即应用主题,避免浅色页面短暂闪为暗色
+  (function(){try{var t=localStorage.getItem('openclaw-docs-theme-v2')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<script src="assets/site.js?v=1794028923_a1428" defer></script>
+<script src="assets/platform.js?v=1794028923_a1428" defer></script>
+<style>
+  /* ===== Release notes grid (8.2 更新速览) ===== */
+  .release-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.8rem;
+    margin: 1.2rem 0 0.8rem;
+  }
+  .release-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid var(--accent-4);
+    transition: all 0.15s ease;
+  }
+  .release-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .release-card .rc-icon { font-size: 1.35rem; margin-bottom: 0.2rem; line-height: 1; }
+  .release-card .rc-title { font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 0.95rem; }
+  .release-card .rc-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+  .release-card code, .release-card kbd { font-size: 0.78rem; }
+  .release-tag {
+    display: inline-block;
+    margin-left: 0.5rem;
+    background: rgba(5, 150, 105, 0.12);
+    color: var(--success);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 4px;
+    vertical-align: 2px;
+  }
+  .release-foot {
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    margin-top: 0.8rem;
+    line-height: 1.6;
+  }
+  .release-foot code {
+    background: var(--bg-panel);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+  }
+
+  /* ===== Hero 装饰光晕 ===== */
+  .hero {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -100px; right: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    bottom: -80px; left: -60px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(192, 38, 211, 0.14) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero > * { position: relative; z-index: 1; }
+
+  /* ===== v8.2 关键指标条(对比 8.1) ===== */
+  .release-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.6rem;
+    margin: 0 0 1.2rem;
+    padding: 0.9rem 1rem;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.04), rgba(5, 150, 105, 0.04));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .release-stat {
+    text-align: center;
+    border-right: 1px dashed var(--border);
+    padding: 0 0.4rem;
+  }
+  .release-stat:last-child { border-right: none; }
+  .release-stat .rs-num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-4), var(--accent-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    font-family: ui-monospace, monospace;
+  }
+  .release-stat .rs-num .rs-delta {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--success);
+    -webkit-text-fill-color: var(--success);
+    margin-left: 0.2rem;
+  }
+  .release-stat .rs-lbl {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ===== v8.2 主操作按钮行 ===== */
+  .release-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.4rem 0 0.6rem;
+  }
+  .release-action {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.55rem 0.95rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.15s;
+  }
+  .release-action:hover {
+    background: var(--accent-4);
+    color: white;
+    border-color: var(--accent-4);
+    transform: translateY(-1px);
+  }
+  .release-action.primary {
+    background: linear-gradient(135deg, var(--accent-4), var(--accent-3));
+    color: white;
+    border-color: transparent;
+  }
+  .release-action.primary:hover {
+    color: white;
+    filter: brightness(1.1);
+  }
+
+  /* ===== 弃用警告 banner ===== */
+  .deprecation-banner {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(220, 38, 38, 0.06));
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    border-left: 4px solid var(--warning);
+    border-radius: 10px;
+    padding: 0.95rem 1.15rem;
+    margin: 1.2rem 0;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+  }
+  .deprecation-banner .db-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .deprecation-banner .db-body { flex: 1; }
+  .deprecation-banner .db-title {
+    font-weight: 700;
+    color: var(--warning);
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+  }
+  .deprecation-banner .db-desc {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+  .deprecation-banner .db-desc code {
+    background: rgba(217, 119, 6, 0.12);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.82rem;
+  }
+  .deprecation-banner .db-deadline {
+    display: inline-block;
+    background: var(--warning);
+    color: white;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-left: 0.3rem;
+  }
+
+  /* ===== 路线预告 grid ===== */
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+  .roadmap-card {
+    background: var(--bg-panel);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 0.95rem 1.1rem;
+    position: relative;
+  }
+  .roadmap-card .rc-version {
+    display: inline-block;
+    background: rgba(124, 58, 237, 0.1);
+    color: var(--accent-4);
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+  .roadmap-card .rc-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 0.35rem;
+  }
+  .roadmap-card .rc-desc {
+    color: var(--text-secondary);
+    font-size: 0.83rem;
+    line-height: 1.55;
+  }
+  .roadmap-card .rc-status {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 0.68rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== 关于本站强化 ===== */
+  #about {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin: 2rem 0 1.5rem;
+  }
+  #about .banner-title {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  #about .banner-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+  #about .tech-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.7rem;
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  #about .tech-strip code {
+    background: rgba(124, 58, 237, 0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+  }
+  #about .tech-strip a {
+    color: var(--accent-4);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+  }
+  #about .tech-strip a:hover { color: var(--accent); }
+  #about .tech-strip .ts-label {
+    color: var(--text-faint);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-right: 0.2rem;
+  }
+  #about .tech-strip .ts-chip {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.74rem;
+  }
+  #about .tech-strip .ts-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--accent-4);
+    font-size: 0.78rem;
+  }
+  #about .tech-strip .ts-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+    align-self: center;
+    margin: 0 0.25rem;
+  }
+  #about .tech-strip .ts-meta {
+    color: var(--text-faint);
+    font-style: italic;
+    margin-left: auto;
+    font-size: 0.76rem;
+  }
+
+  /* ===== 返回顶部按钮 ===== */
+  .scroll-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-4), var(--accent-3));
+    color: white;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.35);
+    z-index: 90;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .scroll-top.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .scroll-top:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+  }
+</style>
+</head>
+<body>
+
+<!-- 阅读进度条 -->
+<div class="reading-progress"></div>
+
+<!-- 顶部页头 -->
+<header class="top-header">
+  <button class="menu-toggle">目录</button>
+  <span class="logo">OpenClaw Docs</span>
+  <span class="crumbs"><strong>首页</strong></span>
+  <span class="spacer"></span>
+  <a href="search.html" style="text-decoration:none;margin-right:0.4rem;color:var(--text-secondary);font-size:0.85rem;">搜索</a>
+  <button class="theme-toggle">暗色</button>
+  <span class="meta" style="margin-left:0.6rem;">v2026.9.2</span>
+</header>
+
+<!-- 侧边栏 -->
+<aside class="sidebar"></aside>
+
+<!-- 主内容 -->
+<main class="main">
+<div class="main-content">
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-eyebrow">
+      <span></span>
+      <span>源码解读 v2026.9.2 · commit 87d32a44</span>
+    </div>
+    <h1>OpenClaw 源码解读</h1>
+    <p class="lead">跨平台 AI 助手框架的深度架构与时序分析 — 个人笔记博客平台</p>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;">
+      50+ 插件 · 30+ 模型支持 · 15+ 消息通道 · 10 大模块 · 35 篇文章
+    </p>
+    <div class="cta-row">
+      <a class="cta cta-primary" href="articles.html">浏览全部文章</a>
+      <a class="cta cta-secondary" href="#modules">十大模块</a>
+      <a class="cta cta-secondary" href="tags.html">按标签</a>
+      <a class="cta cta-secondary" href="rss.xml">RSS</a>
+    </div>
+
+    <!-- Hero 内嵌指标条 -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num" id="article-count">—</div>
+        <div class="lbl">文章</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">10</div>
+        <div class="lbl">模块</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">~5万</div>
+        <div class="lbl">字数</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">8</div>
+        <div class="lbl">Mermaid 图</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">5</div>
+        <div class="lbl">Runtime</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">11</div>
+        <div class="lbl">异常场景</div>
+      </div>
+    </div>
+
+    <div class="hero-meta">
+      <span>作者:<strong style="color:var(--text-secondary);">lian</strong></span>
+      <span class="dot">·</span>
+      <span>最近更新 <strong style="color:var(--text-secondary);">2026-09-05</strong></span>
+      <span class="dot">·</span>
+      <span>双主题支持 · 暗 / 亮</span>
+      <span class="dot">·</span>
+      <span>纯静态 · 无需构建</span>
+    </div>
+  </section>
+
+  <!-- 章节目录(锚点导航) -->
+  <nav class="section-toc" aria-label="页面目录">
+    <span class="toc-label">目录</span>
+    <a href="#principles">三大原则</a>
+    <a href="#picks">编辑精选</a>
+    <a href="#recent">最新文章</a>
+    <a href="#modules">十大模块</a>
+    <a href="#timeline">更新动态</a>
+    <a href="#paths">阅读路径</a>
+  </nav>
+
+  <!-- 关键指标 -->
+  <section class="metric-grid" id="metrics" aria-label="站点指标">
+    <div class="metric">
+ 
+      <div class="label">文章总数</div>
+      <div class="value" id="article-count-2">—</div>
+      <div class="hint">10 大模块 · 47 篇文档</div>
+      <div class="delta">↑ 持续更新</div>
+    </div>
+    <div class="metric">
+ 
+      <div class="label">累计字数</div>
+      <div class="value">~5 万</div>
+      <div class="hint">源码解读 + 时序图解</div>
+      <div class="delta">↑ 全部原创</div>
+    </div>
+    <div class="metric">
+ 
+      <div class="label">Mermaid 图</div>
+      <div class="value">8 张</div>
+      <div class="hint">架构 / 时序 / 决策</div>
+      <div class="delta neutral">= 持平</div>
+    </div>
+    <div class="metric">
+ 
+      <div class="label">最后更新</div>
+      <div class="value">2026-09-05</div>
+      <div class="hint">commit 87d32a44</div>
+      <div class="delta">已同步</div>
+    </div>
+  </section>
+
+  <!-- 三大设计原则 -->
+  <section id="principles">
+    <h2>三大设计原则</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.2rem;">
+      OpenClaw 架构最核心的三条指导思想 — 决定了所有模块的设计取舍。
+    </p>
+    <div class="card-grid">
+      <div class="card principle-card">
+        <h3>可信的网关</h3>
+        <p>单进程长期运行,掌控所有密钥、会话状态、通道连接与策略执行。</p>
+        <a class="principle-link" href="02-architecture.html">深入四层架构 →</a>
+      </div>
+      <div class="card principle-card">
+        <h3>不可信的执行</h3>
+        <p>LLM 推理循环、工具执行、文件访问运行在隔离的边界之外。</p>
+        <a class="principle-link" href="02-architecture.html#sec-8">查看信任边界 →</a>
+      </div>
+      <div class="card principle-card">
+        <h3>确定性的策略</h3>
+        <p>策略以声明式配置形式管理,不分散在各个执行上下文中。</p>
+        <a class="principle-link" href="06-tools-hooks.html">查看钩子拦截 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 编辑精选 -->
+  <section id="picks">
+    <h2>编辑精选 · 入门必读</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.2rem;">
+      如果你只看 4 篇,推荐从这 4 篇开始 — 覆盖架构哲学与全流程。
+    </p>
+    <div class="article-list editor-pick" id="editor-picks"></div>
+  </section>
+
+  <!-- 最新文章 -->
+  <section id="recent">
+    <h2>最新文章</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.2rem;">
+      按发布时间倒序 — 默认展示最近 6 篇。
+    </p>
+    <div class="recent-articles article-list"></div>
+    <p style="text-align:center;margin-top:1rem;">
+      <a class="cta cta-secondary" href="articles.html">查看全部文章 →</a>
+    </p>
+  </section>
+
+  <!-- 10 大模块 -->
+  <section id="modules">
+    <h2>10 大问题域模块</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;">
+      每个模块回答一个具体问题,从「OpenClaw 是什么」到「代码在哪里」。按模块号顺序通读,或按角色挑选入口。
+    </p>
+    <div class="modules-grid">
+      <a class="module-card" href="01-overview.html">
+        <span class="module-num">01</span>
+        <div class="module-title">概览</div>
+        <div class="module-desc">OpenClaw 是什么?设计哲学是什么?</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~15</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="02-architecture.html">
+        <span class="module-num">02</span>
+        <div class="module-title">核心架构</div>
+        <div class="module-desc">三原则、四层架构、网关、信任边界。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>4</strong>篇</span>
+          <span class="ms-item"><strong>~22</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="03-channels.html">
+        <span class="module-num">03</span>
+        <div class="module-title">消息通道</div>
+        <div class="module-desc">通道插件、协议帧、15+ 通道清单。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~18</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="04-models-runtimes.html">
+        <span class="module-num">04</span>
+        <div class="module-title">模型与运行时</div>
+        <div class="module-desc">Provider/Model/Runtime 区分,5 种 Runtime。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>4</strong>篇</span>
+          <span class="ms-item"><strong>~26</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="05-sessions.html">
+        <span class="module-num">05</span>
+        <div class="module-title">会话与状态</div>
+        <div class="module-desc">生命周期、SQLite、提示词 8 层、DM 隔离。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>4</strong>篇</span>
+          <span class="ms-item"><strong>~24</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="06-tools-hooks.html">
+        <span class="module-num">06</span>
+        <div class="module-title">工具与钩子</div>
+        <div class="module-desc">工具执行、钩子拦截、关键决策。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~19</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="07-end-to-end.html">
+        <span class="module-num">07</span>
+        <div class="module-title">端到端流程</div>
+        <div class="module-desc">WhatsApp 旅程、13 参与者、9 阶段。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~21</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="08-performance.html">
+        <span class="module-num">08</span>
+        <div class="module-title">性能与延迟</div>
+        <div class="module-desc">耗时分布、瓶颈分析、优化策略。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~17</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="09-error-handling.html">
+        <span class="module-num">09</span>
+        <div class="module-title">异常与降级</div>
+        <div class="module-desc">11 种异常场景、重试策略、监控告警。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~16</strong>分钟</span>
+        </div>
+      </a>
+      <a class="module-card" href="10-source-walkthrough.html">
+        <span class="module-num">10</span>
+        <div class="module-title">源码导览</div>
+        <div class="module-desc">顶层目录、src/、packages/、extensions/。</div>
+        <div class="module-stats">
+          <span class="ms-item"><strong>3</strong>篇</span>
+          <span class="ms-item"><strong>~14</strong>分钟</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 更新动态时间线 -->
+  <section id="timeline">
+    <h2>更新动态</h2>
+    <p style="color:var(--text-muted);margin-bottom:1rem;">
+      按发布日期倒序的最近 8 篇 — 让快速回顾近期写作脉络。
+    </p>
+    <div class="timeline" id="timeline-list"></div>
+  </section>
+
+  <!-- 按角色入口 -->
+  <section id="paths">
+    <h2>按角色入口 · 推荐阅读路径</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.2rem;">
+      不同角色有不同的关注点 — 这里给出 4 条推荐阅读路径,按序点击即可形成完整知识闭环。
+    </p>
+    <div class="card-grid">
+      <div class="card role-card">
+        <h3>架构师</h3>
+        <p>关注整体架构、模块边界、信任模型。</p>
+        <div class="role-path">
+          <a class="role-step" href="01-overview.html">01 概览</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="02-architecture.html">02 架构</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="10-source-walkthrough.html">10 源码</a>
+        </div>
+      </div>
+      <div class="card role-card">
+        <h3>插件开发者</h3>
+        <p>关注扩展点、Provider、工具与钩子。</p>
+        <div class="role-path">
+          <a class="role-step" href="03-channels.html">03 通道</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="04-models-runtimes.html">04 模型</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="06-tools-hooks.html">06 工具</a>
+        </div>
+      </div>
+      <div class="card role-card">
+        <h3>运维 / SRE</h3>
+        <p>关注延迟、稳定性、可观测性、降级策略。</p>
+        <div class="role-path">
+          <a class="role-step" href="02-architecture.html">02 架构</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="08-performance.html">08 性能</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="09-error-handling.html">09 异常</a>
+        </div>
+      </div>
+      <div class="card role-card">
+        <h3>应用开发者</h3>
+        <p>关注会话、提示词、工具调用与端到端集成。</p>
+        <div class="role-path">
+          <a class="role-step" href="01-overview.html">01 概览</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="07-end-to-end.html">07 端到端</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="05-sessions.html">05 会话</a>
+          <span class="role-arrow">→</span>
+          <a class="role-step" href="06-tools-hooks.html">06 工具</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部 CTA -->
+  <div class="cta-footer">
+    <h2>开始你的探索之旅</h2>
+    <p>从「OpenClaw 是什么」开始,或按上面的角色路径快速进入。</p>
+    <div class="cta-row">
+      <a class="cta cta-primary" href="01-overview.html">从 01 开始</a>
+      <a class="cta cta-secondary" href="articles.html">全部文章</a>
+      <a class="cta cta-secondary" href="search.html">全文搜索</a>
+      <a class="cta cta-secondary" href="rss.xml">订阅 RSS</a>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- 加载文章元数据 + 渲染 -->
+<script>
+  // 编辑精选:渲染固定 4 篇入门文章(若数据中存在则替换)
+  window.addEventListener('DOMContentLoaded', () => {
+    // 编辑精选渲染延迟到 fetch 完成(platform.js 也监听同一事件,这里稍后再注入)
+    const tryRenderPicks = () => {
+      if (!window.OPENCLAW_ARTICLES) return false;
+      const target = document.getElementById('editor-picks');
+      if (!target || target.dataset.rendered) return true;
+      const desired = ['overview', 'design-philosophy', 'three-principles', 'four-layer'];
+      const picks = window.OPENCLAW_ARTICLES.filter(a => desired.includes(a.id));
+      // 若精确 ID 没匹配够 4 篇,补足 category=入门 文章
+      const list = picks.length >= 4 ? picks : [
+        ...picks,
+        ...window.OPENCLAW_ARTICLES
+          .filter(a => a.category === '入门' && !picks.find(p => p.id === a.id))
+      ].slice(0, 4);
+      if (!list.length) return false;
+      target.innerHTML = list.map(a => `
+        <a class="article-list-item" href="${a.path}">
+          <div class="article-title">${a.title}</div>
+          <div class="article-summary">${a.summary}</div>
+          <div class="article-footer">
+            <span>${a.date}</span>
+            <span>${a.readingTime} 分钟</span>
+            <span>${a.category}</span>
+            ${a.tags.slice(0, 3).map(t => `<span class="footer-tag">${t}</span>`).join('')}
+          </div>
+        </a>
+      `).join('');
+      target.dataset.rendered = '1';
+      return true;
+    };
+    // 编辑精选
+    const interval = setInterval(() => {
+      if (tryRenderPicks()) clearInterval(interval);
+    }, 80);
+    setTimeout(() => clearInterval(interval), 4000);
+
+    // 时间线渲染
+    const tryRenderTimeline = () => {
+      if (!window.OPENCLAW_ARTICLES) return false;
+      const target = document.getElementById('timeline-list');
+      if (!target || target.dataset.rendered) return true;
+      const recent = [...window.OPENCLAW_ARTICLES]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 8);
+      target.innerHTML = recent.map(a => `
+        <div class="timeline-item">
+          <div class="ti-date">${a.date} · ${a.category}</div>
+          <a class="ti-title" href="${a.path}">${a.title}</a>
+          <div class="ti-meta">${a.readingTime} 分钟 · ${a.tags.slice(0, 3).join(' · ')}</div>
+        </div>
+      `).join('');
+      target.dataset.rendered = '1';
+      return true;
+    };
+    const tlInterval = setInterval(() => {
+      if (tryRenderTimeline()) clearInterval(tlInterval);
+    }, 80);
+    setTimeout(() => clearInterval(tlInterval), 4000);
+  });
+</script>
+
+
+<script>
+// 平滑滚动 + 返回顶部
+document.addEventListener('DOMContentLoaded', () => {
+  // 平滑滚动到锚点
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      const top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+
+  // 返回顶部按钮
+  const btn = document.getElementById('scroll-top');
+  if (btn) {
+    const toggle = () => {
+      if (window.scrollY > 480) btn.classList.add('is-visible');
+      else btn.classList.remove('is-visible');
+    };
+    window.addEventListener('scroll', toggle, { passive: true });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    toggle();
+  }
+});
+</script>
+<script>
+// 加载 JSON(用 fetch 解决 file:// 限制)
+fetch('assets/articles.json')
+  .then(r => r.ok ? r.text() : Promise.reject('fetch failed'))
+  .then(t => {
+    try {
+      window.OPENCLAW_ARTICLES = JSON.parse(t);
+      const n = window.OPENCLAW_ARTICLES.length;
+      const a1 = document.getElementById('article-count');
+      const a2 = document.getElementById('article-count-2');
+      if (a1) a1.textContent = n;
+      if (a2) a2.textContent = n;
+      // 触发 platform.js 的列表/标签云渲染
+      document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true }));
+    } catch (e) {
+      console.error('Failed to parse articles.json', e);
+    }
+  })
+  .catch(err => {
+    document.getElementById('article-count').textContent = '35';
+    document.getElementById('article-count-2').textContent = '35';
+  });
+</script>
+
+<!-- 返回顶部 -->
+<button id="scroll-top" class="scroll-top" aria-label="返回顶部" title="返回顶部">↑</button>
+
+</body>
+</html>

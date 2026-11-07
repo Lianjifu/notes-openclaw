@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>OpenClaw 源码解读 · 个人博客</title>
+  <link>https://openclaw-docs.local/</link>
+  <description>OpenClaw v2026.8.2 深度架构与时序分析的个人笔记博客</description>
+  <language>zh-CN</language>
+  <lastBuildDate>Tue, 01 Sep 2026 18:43:55 +0800</lastBuildDate>
+  <item>
+    <title>OpenClaw 是什么</title>
+    <link>https://openclaw-docs.local/01-overview.html</link>
+    <guid>https://openclaw-docs.local/01-overview.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 是一个跨平台、个人优先的 AI 助手框架,通过单一可信网关连接模型、工具、消息通道和伴生应用。]]></description>
+    <category>入门</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>设计哲学与目标</title>
+    <link>https://openclaw-docs.local/01-overview.html</link>
+    <guid>https://openclaw-docs.local/01-overview.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 的三条核心架构原则:可信的网关、不可信的执行、确定性的策略。]]></description>
+    <category>入门</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>项目元信息</title>
+    <link>https://openclaw-docs.local/01-overview.html</link>
+    <guid>https://openclaw-docs.local/01-overview.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw v2026.8.2 的版本、技术栈、能力指标一文总览。]]></description>
+    <category>入门</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>三原则:可信网关、不可信执行、确定策略</title>
+    <link>https://openclaw-docs.local/02-architecture.html</link>
+    <guid>https://openclaw-docs.local/02-architecture.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[可信的网关、不可信的执行、确定性的策略 — 这三条原则如何在 OpenClaw 落地。]]></description>
+    <category>核心架构</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>四层架构总览</title>
+    <link>https://openclaw-docs.local/02-architecture.html</link>
+    <guid>https://openclaw-docs.local/02-architecture.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 由四个核心层组成:消息通道、可信网关、Agent 运行时、模型提供商。]]></description>
+    <category>核心架构</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>网关内部结构</title>
+    <link>https://openclaw-docs.local/02-architecture.html</link>
+    <guid>https://openclaw-docs.local/02-architecture.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[网关是一个 Node.js 进程,通过单一端口多路复用 WebSocket、HTTP API、插件路由和控制台 UI。]]></description>
+    <category>核心架构</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>三层信任边界</title>
+    <link>https://openclaw-docs.local/02-architecture.html</link>
+    <guid>https://openclaw-docs.local/02-architecture.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 将可信边界严格划在网关处,Agent 推理与工具执行运行在不可信侧。]]></description>
+    <category>核心架构</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>通道插件架构</title>
+    <link>https://openclaw-docs.local/03-channels.html</link>
+    <guid>https://openclaw-docs.local/03-channels.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 通过通道插件连接 15+ 消息平台,每个插件负责 OAuth / 凭据管理、消息解析、规范化与送达。]]></description>
+    <category>消息通道</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>协议帧详解</title>
+    <link>https://openclaw-docs.local/03-channels.html</link>
+    <guid>https://openclaw-docs.local/03-channels.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[通道插件与 Gateway 之间的 WebSocket JSON 帧完整示例与规范。]]></description>
+    <category>消息通道</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>内置通道清单</title>
+    <link>https://openclaw-docs.local/03-channels.html</link>
+    <guid>https://openclaw-docs.local/03-channels.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 内置 50+ 通道插件,涵盖主流消息平台、邮件、Webhook 等。]]></description>
+    <category>消息通道</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>模型与运行时概念区分</title>
+    <link>https://openclaw-docs.local/04-models-runtimes.html</link>
+    <guid>https://openclaw-docs.local/04-models-runtimes.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 把 Provider/Model 与 Runtime/Harness 解耦,理解这一点是选择合适配置的前提。]]></description>
+    <category>模型与运行时</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>五种运行时对比</title>
+    <link>https://openclaw-docs.local/04-models-runtimes.html</link>
+    <guid>https://openclaw-docs.local/04-models-runtimes.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[openclaw / codex / copilot / claude-cli / acp 五种 Runtime 各自定位与适用场景。]]></description>
+    <category>模型与运行时</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>四级选择流程</title>
+    <link>https://openclaw-docs.local/04-models-runtimes.html</link>
+    <guid>https://openclaw-docs.local/04-models-runtimes.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 按四级优先级解析 Agent 运行时:模型级 → Provider 级 → auto → fallback。]]></description>
+    <category>模型与运行时</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>内置 Provider 清单</title>
+    <link>https://openclaw-docs.local/04-models-runtimes.html</link>
+    <guid>https://openclaw-docs.local/04-models-runtimes.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 内置 30+ 模型 Provider,涵盖主流商业 API、开源模型、聚合服务。]]></description>
+    <category>模型与运行时</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>会话生命周期</title>
+    <link>https://openclaw-docs.local/05-sessions.html</link>
+    <guid>https://openclaw-docs.local/05-sessions.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[一个会话从创建到销毁经历哪些阶段?ACTIVE / RUNNING / IDLE / COMPACTED / ARCHIVED。]]></description>
+    <category>会话与状态</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>状态持久化</title>
+    <link>https://openclaw-docs.local/05-sessions.html</link>
+    <guid>https://openclaw-docs.local/05-sessions.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 使用 SQLite local-first 持久化,所有状态可查询、可恢复、可归档。]]></description>
+    <category>会话与状态</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>提示词分层结构</title>
+    <link>https://openclaw-docs.local/05-sessions.html</link>
+    <guid>https://openclaw-docs.local/05-sessions.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 的 5 层提示词叠加结构:basePrompt + skills snapshot + bootstrap + session context + per-run overrides。]]></description>
+    <category>会话与状态</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>DM 隔离策略</title>
+    <link>https://openclaw-docs.local/05-sessions.html</link>
+    <guid>https://openclaw-docs.local/05-sessions.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[main / per-peer / per-channel-peer / per-account-channel-peer — 4 种 DM 隔离模式。]]></description>
+    <category>会话与状态</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>工具执行机制</title>
+    <link>https://openclaw-docs.local/06-tools-hooks.html</link>
+    <guid>https://openclaw-docs.local/06-tools-hooks.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[工具如何被调用?沙箱、超时、并发 — OpenClaw 的工具执行核心机制。]]></description>
+    <category>工具与钩子</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>钩子拦截点</title>
+    <link>https://openclaw-docs.local/06-tools-hooks.html</link>
+    <guid>https://openclaw-docs.local/06-tools-hooks.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw 8+ 个 Agent 生命周期钩子,before_tool_call / after_tool_call 是核心拦截点。]]></description>
+    <category>工具与钩子</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>关键路径决策汇总</title>
+    <link>https://openclaw-docs.local/06-tools-hooks.html</link>
+    <guid>https://openclaw-docs.local/06-tools-hooks.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[时序中的每一处分支对应哪个设计决策?8 个核心决策一文汇总。]]></description>
+    <category>工具与钩子</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>WhatsApp DM 完整旅程</title>
+    <link>https://openclaw-docs.local/07-end-to-end.html</link>
+    <guid>https://openclaw-docs.local/07-end-to-end.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[追踪一条消息从发送到回复的 13 个参与者、9 个阶段。]]></description>
+    <category>端到端流程</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>端到端数据流概览</title>
+    <link>https://openclaw-docs.local/07-end-to-end.html</link>
+    <guid>https://openclaw-docs.local/07-end-to-end.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[一条普通用户消息从发送到收到回复的完整 9 步流程。]]></description>
+    <category>端到端流程</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>时序图全貌</title>
+    <link>https://openclaw-docs.local/07-end-to-end.html</link>
+    <guid>https://openclaw-docs.local/07-end-to-end.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[完整 Mermaid 时序图 — 13 个参与者、9 个阶段,带 autonumber 自动编号。]]></description>
+    <category>端到端流程</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>耗时分布参考</title>
+    <link>https://openclaw-docs.local/08-performance.html</link>
+    <guid>https://openclaw-docs.local/08-performance.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[一条典型消息在各阶段的典型耗时,模型推理占总耗时 70%+。]]></description>
+    <category>性能与延迟</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>延迟拆解可视化</title>
+    <link>https://openclaw-docs.local/08-performance.html</link>
+    <guid>https://openclaw-docs.local/08-performance.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[三种典型场景:纯文本 / 一次工具 / 三次工具,各阶段耗时对比。]]></description>
+    <category>性能与延迟</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>优化策略</title>
+    <link>https://openclaw-docs.local/08-performance.html</link>
+    <guid>https://openclaw-docs.local/08-performance.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[针对延迟的优化方法 — 选用更快的模型、prompt caching、并发执行工具等。]]></description>
+    <category>性能与延迟</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>11 种异常场景</title>
+    <link>https://openclaw-docs.local/09-error-handling.html</link>
+    <guid>https://openclaw-docs.local/09-error-handling.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[常见失败点与 OpenClaw 的应对策略 — Schema 校验、速率限制、auth 过期、超时等。]]></description>
+    <category>异常与降级</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>重试策略与退避算法</title>
+    <link>https://openclaw-docs.local/09-error-handling.html</link>
+    <guid>https://openclaw-docs.local/09-error-handling.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[各种资源的重试参数与实现细节 — 通道重连、Provider HTTP、OAuth Refresh 等。]]></description>
+    <category>异常与降级</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>监控与告警</title>
+    <link>https://openclaw-docs.local/09-error-handling.html</link>
+    <guid>https://openclaw-docs.local/09-error-handling.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[关键监控指标与告警阈值,OpenTelemetry / Prometheus 集成。]]></description>
+    <category>异常与降级</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>顶层目录结构</title>
+    <link>https://openclaw-docs.local/10-source-walkthrough.html</link>
+    <guid>https://openclaw-docs.local/10-source-walkthrough.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[OpenClaw monorepo 的顶层目录组织:src/、packages/、extensions/、apps/、skills/、ui/。]]></description>
+    <category>源码导览</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>src/ 核心模块</title>
+    <link>https://openclaw-docs.local/10-source-walkthrough.html</link>
+    <guid>https://openclaw-docs.local/10-source-walkthrough.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[核心代码位于 src/,按职责划分:gateway、agents、channels、plugins、tools 等。]]></description>
+    <category>源码导览</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>packages/ 可复用包</title>
+    <link>https://openclaw-docs.local/10-source-walkthrough.html</link>
+    <guid>https://openclaw-docs.local/10-source-walkthrough.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[20+ 可独立发布的 npm 包,跨应用共享,定义明确的依赖关系。]]></description>
+    <category>源码导览</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>extensions/ 插件清单</title>
+    <link>https://openclaw-docs.local/10-source-walkthrough.html</link>
+    <guid>https://openclaw-docs.local/10-source-walkthrough.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[50+ 通道、Provider、Harness、工具插件,OpenClaw 的核心扩展点。]]></description>
+    <category>源码导览</category>
+    <author>lian</author>
+  </item>
+  <item>
+    <title>apps/ 伴生应用</title>
+    <link>https://openclaw-docs.local/10-source-walkthrough.html</link>
+    <guid>https://openclaw-docs.local/10-source-walkthrough.html</guid>
+    <pubDate>Tue, 01 Sep 2026 00:00:00 +0800</pubDate>
+    <description><![CDATA[macOS、iOS、Android、Linux 伴生应用,通过 WebSocket 与 Gateway 通信。]]></description>
+    <category>源码导览</category>
+    <author>lian</author>
+  </item>
+</channel>
+</rss>

@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 本地 / 机器相关配置(Claude Code 的本地权限记录,含绝对路径)
+.claude/settings.local.json
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+
+# 日志与临时文件
+*.log
+__pycache__/
+*.py[cod]
